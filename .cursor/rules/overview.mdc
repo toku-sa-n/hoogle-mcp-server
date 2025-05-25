@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Hoogle MCP server development guide
+
+In this file, "you" means Cursor, and "I" means the programmer.
+
+## Project management
+
+This project is managed by `hatch`. Installing dependencies must be done in its environment.
+
+## Testing
+
+You must run `hatch test` once you have modified something. You can finish your editing or proceed to next once the command succeeds.
