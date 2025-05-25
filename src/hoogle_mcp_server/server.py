@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import argparse
 import asyncio
 import subprocess
 from typing import Any, Dict, List
@@ -215,6 +216,18 @@ async def main():
 
 def cli_main():
     """CLI entry point that runs the async main function."""
+    parser = argparse.ArgumentParser(
+        prog="hoogle-mcp-server",
+        description="MCP server for accessing Hoogle search functionality",
+        epilog="This server provides tools to search Haskell functions and types using Hoogle.",
+    )
+
+    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Run the server
     asyncio.run(main())
 
 
