@@ -4,13 +4,25 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hoogle-mcp-server"
-version = "0.1.0"
 description = "MCP server for accessing Hoogle search functionality"
-authors = [{ name = "toku-sa-n", email = "tokusan441@gmail.com" }]
-license = { text = "AGPL-3.0-or-later" }
 readme = "README.md"
+version = "0.1.0"
+license = { file = "LICENSE" }
 requires-python = ">=3.8"
 keywords = ["mcp", "hoogle", "haskell"]
+authors = [{ name = "toku-sa-n", email = "tokusan441@gmail.com" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
 dependencies = ["mcp>=1.0.0", "pydantic>=2.0.0"]
 
 [project.urls]
@@ -21,9 +33,9 @@ Repository = "https://github.com/toku-sa-n/hoogle-mcp-server"
 hoogle-mcp-server = "hoogle_mcp_server.server:cli_main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/hoogle_mcp_server"]
+packages = ["hoogle_mcp_server"]
 
-[tool.hatch.envs.default]
+[tool.hatch.envs.dev]
 dependencies = ["mypy"]
 
 [tool.hatch.envs.hatch-test]
