@@ -1,0 +1,8 @@
+[build.targets.wheel]
+packages = ["hoogle_mcp_server"]
+
+[envs.dev]
+dependencies = ["mypy"]
+
+[envs.hatch-test]
+extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]

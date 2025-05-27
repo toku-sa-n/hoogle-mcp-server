@@ -32,14 +32,5 @@ Repository = "https://github.com/toku-sa-n/hoogle-mcp-server"
 [project.scripts]
 hoogle-mcp-server = "hoogle_mcp_server.server:cli_main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["hoogle_mcp_server"]
-
-[tool.hatch.envs.dev]
-dependencies = ["mypy"]
-
-[tool.hatch.envs.hatch-test]
-extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
-
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
