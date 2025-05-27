@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import asyncio
 import subprocess
+from importlib import metadata
 from typing import Any, Dict, List
 
 from mcp.server import NotificationOptions, Server
@@ -29,6 +30,14 @@ WHICH_COMMAND_TIMEOUT_SECONDS = 10
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 30
 
 server: Server = Server("hoogle-mcp-server")
+
+
+def get_version() -> str:
+    """Get package version from metadata."""
+    try:
+        return metadata.version("hoogle-mcp-server")
+    except metadata.PackageNotFoundError:
+        return "(no version info)"
 
 
 def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
@@ -205,7 +214,7 @@ async def main():
             write_stream,
             InitializationOptions(
                 server_name="hoogle-mcp-server",
-                server_version="0.1.0",
+                server_version=get_version(),
                 capabilities=server.get_capabilities(
                     notification_options=NotificationOptions(),
                     experimental_capabilities={},
@@ -222,7 +231,9 @@ def cli_main():
         epilog="This server provides tools to search Haskell functions and types using Hoogle.",
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {get_version()}"
+    )
 
     # Parse arguments
     args = parser.parse_args()

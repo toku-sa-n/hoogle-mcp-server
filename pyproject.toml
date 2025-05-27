@@ -24,7 +24,10 @@ hoogle-mcp-server = "hoogle_mcp_server.server:cli_main"
 packages = ["src/hoogle_mcp_server"]
 
 [tool.hatch.envs.default]
-dependencies = ["pytest", "pytest-asyncio", "mypy"]
+dependencies = ["mypy"]
+
+[tool.hatch.envs.hatch-test]
+extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
