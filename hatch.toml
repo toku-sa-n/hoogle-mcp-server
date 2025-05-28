@@ -7,7 +7,16 @@ run = ["black --check .", "isort --profile black --check-only .", "flake8 ."]
 
 [envs.type-check]
 detached = true
-dependencies = ["mypy"]
+dependencies = [
+    "mypy",
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "pytest >= 8.0",
+    "pytest-asyncio >= 1.0.0",
+]
+
+[[envs.type-check.matrix]]
+python = ["3.10", "3.11", "3.12", "3.13"]
 
 [envs.type-check.scripts]
 run = "mypy ."
@@ -21,3 +30,6 @@ run = ["safety check", "bandit -r ."]
 
 [envs.hatch-test]
 extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
+
+[[envs.hatch-test.matrix]]
+python = ["3.10", "3.11", "3.12", "3.13"]
