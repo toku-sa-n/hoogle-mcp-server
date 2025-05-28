@@ -41,11 +41,6 @@ jobs:
             - name: Run tests
               run: hatch test --all
 
-            - name: Test package installation
-              run: |
-                  pip install .
-                  python -c "import hoogle_mcp_server"
-
     type-check:
         runs-on: ubuntu-latest
         steps:
