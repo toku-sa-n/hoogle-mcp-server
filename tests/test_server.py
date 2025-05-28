@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest_asyncio
 import pytest
 
 from hoogle_mcp_server.server import (

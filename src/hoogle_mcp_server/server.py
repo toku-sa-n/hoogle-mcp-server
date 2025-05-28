@@ -75,7 +75,10 @@ def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     except subprocess.TimeoutExpired:
         return {
             "success": False,
-            "error": f"Command execution timed out ({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)",
+            "error": (
+                f"Command execution timed out "
+                f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
+            ),
             "output": "",
         }
     except Exception as e:
@@ -92,13 +95,19 @@ async def handle_list_tools() -> list[Tool]:
     return [
         Tool(
             name="hoogle_search",
-            description="Search for function and type definitions using the Haskell API search engine Hoogle",
+            description=(
+                "Search for function and type definitions using the "
+                "Haskell API search engine Hoogle"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Search query (function name, type signature, or keywords)",
+                        "description": (
+                            "Search query (function name, type signature, "
+                            "or keywords)"
+                        ),
                     },
                     "max_results": {
                         "type": "integer",
@@ -113,13 +122,16 @@ async def handle_list_tools() -> list[Tool]:
         ),
         Tool(
             name="hoogle_info",
-            description="Get detailed information about a specific function or type",
+            description=("Get detailed information about a specific function or type"),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "Function name or type name to get detailed information for",
+                        "description": (
+                            "Function name or type name to get detailed "
+                            "information for"
+                        ),
                     }
                 },
                 "required": ["name"],
@@ -228,15 +240,18 @@ def cli_main():
     parser = argparse.ArgumentParser(
         prog="hoogle-mcp-server",
         description="MCP server for accessing Hoogle search functionality",
-        epilog="This server provides tools to search Haskell functions and types using Hoogle.",
+        epilog=(
+            "This server provides tools to search Haskell functions "
+            "and types using Hoogle."
+        ),
     )
 
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {get_version()}"
     )
 
-    # Parse arguments
-    args = parser.parse_args()
+    # Parse arguments (variable unused, but parser.parse_args() needed)
+    parser.parse_args()
 
     # Run the server
     asyncio.run(main())

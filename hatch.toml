@@ -1,8 +1,23 @@
-[build.targets.wheel]
-packages = ["hoogle_mcp_server"]
+[envs.lint]
+detached = true
+dependencies = ["black", "isort", "flake8", "flake8-bugbear"]
 
-[envs.dev]
+[envs.lint.scripts]
+run = ["black --check .", "isort --profile black --check-only .", "flake8 ."]
+
+[envs.type-check]
+detached = true
 dependencies = ["mypy"]
+
+[envs.type-check.scripts]
+run = "mypy ."
+
+[envs.security]
+detached = true
+dependencies = ["safety", "bandit"]
+
+[envs.security.scripts]
+run = ["safety check", "bandit -r ."]
 
 [envs.hatch-test]
 extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
