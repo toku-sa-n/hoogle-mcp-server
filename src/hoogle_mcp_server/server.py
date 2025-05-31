@@ -89,6 +89,16 @@ def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
         }
 
 
+def validate_query_length(query: str, param_name: str = "query") -> str | None:
+    """Validate query length and return error message if invalid, None if valid."""
+    if len(query) > MAX_QUERY_LENGTH:
+        return (
+            f"Error: {param_name.capitalize()} too long. "
+            f"Maximum length is {MAX_QUERY_LENGTH} characters, got {len(query)}"
+        )
+    return None
+
+
 @server.list_tools()
 async def handle_list_tools() -> list[Tool]:
     """List available tools."""
@@ -148,13 +158,10 @@ async def handle_hoogle_search(
     if not query:
         return [TextContent(type="text", text="Error: Search query not specified")]
 
-    if len(query) > MAX_QUERY_LENGTH:
-        return [
-            TextContent(
-                type="text",
-                text=f"Error: Query too long. Maximum length is {MAX_QUERY_LENGTH} characters, got {len(query)}",
-            )
-        ]
+    # Validate query length
+    validation_error = validate_query_length(query, "query")
+    if validation_error:
+        return [TextContent(type="text", text=validation_error)]
 
     args = ["search"]
     args.extend(["--count", str(max_results)])
@@ -190,13 +197,10 @@ async def handle_hoogle_info(
             )
         ]
 
-    if len(name_param) > MAX_QUERY_LENGTH:
-        return [
-            TextContent(
-                type="text",
-                text=f"Error: Name too long. Maximum length is {MAX_QUERY_LENGTH} characters, got {len(name_param)}",
-            )
-        ]
+    # Validate name parameter length
+    validation_error = validate_query_length(name_param, "name")
+    if validation_error:
+        return [TextContent(type="text", text=validation_error)]
 
     args = ["search", "-i", "--", name_param]
     result = run_hoogle_command(args)
