@@ -27,7 +27,7 @@ from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
 
-HOOGLE_COMMAND_TIMEOUT_SECONDS = 30
+HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
 
 ToolResponse = list[TextContent | ImageContent | EmbeddedResource]
