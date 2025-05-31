@@ -11,6 +11,6 @@ In this file, "you" means Cursor, and "I" means the programmer.
 
 This project is managed by `hatch`. Installing dependencies must be done in its environment.
 
-## Testing
+## Validation
 
-You must run `hatch test` once you have modified something. You can finish your editing or proceed to next once the command succeeds.
+You must read the CI configuration file, and make sure all the checks pass on the local machine too once you have modified something. You can finish your editing or proceed to next once the checks succeed.
