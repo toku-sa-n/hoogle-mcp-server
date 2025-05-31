@@ -57,7 +57,11 @@ def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
 
         cmd = [hoogle_path] + args
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS,
+            shell=False,
         )
 
         return {
