@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 def setup_logging(log_level: LogLevel = "INFO") -> None:
     """Setup logging configuration with specified log level."""
-    # Convert string to logging level
+
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError(f"Invalid log level: {log_level}")
