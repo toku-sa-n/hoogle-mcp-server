@@ -21,6 +21,9 @@ jobs:
           python-version: "3.13"
           cache: pip
 
+      - name: Install Hatch
+        run: pip install hatch
+
       - name: Set up Haskell
         id: setup-haskell
         uses: haskell-actions/setup@96f3dafd067155f32643c2a0757ab71d2910e2c2 # v2.8.0
