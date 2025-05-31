@@ -23,10 +23,10 @@ run = "mypy ."
 
 [envs.security]
 detached = true
-dependencies = ["safety", "bandit"]
+dependencies = ["pip-audit", "bandit"]
 
 [envs.security.scripts]
-run = ["safety check", "bandit -r ."]
+run = ["pip-audit", "bandit -r ."]
 
 [envs.hatch-test]
 extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
