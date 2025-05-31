@@ -26,7 +26,8 @@ detached = true
 dependencies = ["pip-audit", "bandit"]
 
 [envs.security.scripts]
-run = ["pip-audit", "bandit -r ./src -s B404,B603,B607"]
+# Bandit's `exclude` option does not seem to work: https://github.com/PyCQA/bandit/issues/693
+run = ["pip-audit", "bandit -c bandit.yaml -r ."]
 
 [envs.hatch-test]
 extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]

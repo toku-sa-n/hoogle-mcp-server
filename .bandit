@@ -1,6 +1,0 @@
-[bandit]
-exclude = tests
-skips = B404
-
-[bandit.assert_used]
-skips = ['*test*.py', 'tests/*']

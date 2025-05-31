@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import asyncio
+import shutil
 import subprocess
 from importlib import metadata
 from typing import Any, Dict, List
@@ -26,7 +27,6 @@ from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
 
-WHICH_COMMAND_TIMEOUT_SECONDS = 10
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 30
 
 server: Server = Server("hoogle-mcp-server")
@@ -43,14 +43,8 @@ def get_version() -> str:
 def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     """Execute hoogle command and return the result."""
     try:
-        result = subprocess.run(
-            ["which", "hoogle"],
-            capture_output=True,
-            text=True,
-            timeout=WHICH_COMMAND_TIMEOUT_SECONDS,
-        )
-
-        if result.returncode != 0:
+        # Check if hoogle command is available using shutil.which
+        if not shutil.which("hoogle"):
             return {
                 "success": False,
                 "error": (
