@@ -22,17 +22,16 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict, List, Callable, Awaitable, Optional
+from typing import Any, Dict, List, Optional
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
-from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
+from mcp.types import TextContent, Tool
+
+from .types import ToolHandler, ToolResponse
 
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
-
-ToolResponse = list[TextContent | ImageContent | EmbeddedResource]
-ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
 
 server: Server = Server("hoogle-mcp-server")
 hoogle_path: Optional[str] = None
