@@ -1,9 +1,10 @@
-[envs.format]
+[envs.style]
 detached = true
-dependencies = ["black", "isort", "flake8", "flake8-bugbear"]
+dependencies = ["ruff"]
 
-[envs.format.scripts]
-run = ["black --check .", "isort --profile black --check-only .", "flake8 ."]
+[envs.style.scripts]
+check = ["ruff format --check .", "ruff check ."]
+fix = ["ruff format .", "ruff check --fix ."]
 
 [envs.type-check]
 detached = true

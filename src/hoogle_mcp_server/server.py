@@ -104,8 +104,7 @@ async def handle_list_tools() -> list[Tool]:
                     "query": {
                         "type": "string",
                         "description": (
-                            "Search query (function name, type signature, "
-                            "or keywords)"
+                            "Search query (function name, type signature, or keywords)"
                         ),
                     },
                     "max_results": {
@@ -128,8 +127,7 @@ async def handle_list_tools() -> list[Tool]:
                     "name": {
                         "type": "string",
                         "description": (
-                            "Function name or type name to get detailed "
-                            "information for"
+                            "Function name or type name to get detailed information for"
                         ),
                     }
                 },
