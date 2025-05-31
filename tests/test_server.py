@@ -46,6 +46,7 @@ class TestRunHoogleCommand:
             capture_output=True,
             text=True,
             timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS,
+            shell=False,
         )
 
     @patch("subprocess.run")
