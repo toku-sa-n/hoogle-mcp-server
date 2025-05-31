@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import asyncio
+import logging
 import shutil
 import sys
 from importlib import metadata
@@ -35,6 +36,22 @@ ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
 
 server: Server = Server("hoogle-mcp-server")
 hoogle_path: Optional[str] = None
+logger = logging.getLogger(__name__)
+
+
+def setup_logging(log_level: str = "INFO") -> None:
+    """Setup logging configuration with specified log level."""
+    # Convert string to logging level
+    numeric_level = getattr(logging, log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid log level: {log_level}")
+
+    logging.basicConfig(
+        level=numeric_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logger.info("Logging initialized with level: %s", log_level.upper())
 
 
 def get_version() -> str:
@@ -58,6 +75,8 @@ async def _execute_process_with_timeout(
     process: asyncio.subprocess.Process,
 ) -> Dict[str, Any]:
     """Execute process with timeout handling."""
+    logger.debug(f"Executing process with PID: {process.pid}")
+
     try:
         stdout, stderr = await asyncio.wait_for(
             process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
@@ -65,12 +84,15 @@ async def _execute_process_with_timeout(
 
         # Handle case where returncode is None
         if process.returncode is None:
+            logger.error("Process did not complete properly (returncode is None)")
             return {
                 "success": False,
                 "error": "Process did not complete properly (returncode is None)",
                 "output": stdout.decode("utf-8") if stdout else "",
                 "return_code": None,
             }
+
+        logger.debug(f"Process completed with return code: {process.returncode}")
 
         return {
             "success": process.returncode == 0,
@@ -82,10 +104,15 @@ async def _execute_process_with_timeout(
         }
 
     except asyncio.TimeoutError:
+        logger.warning(
+            f"Process timed out after {HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds"
+        )
         try:
             process.kill()
             await process.wait()
+            logger.debug("Process killed successfully")
         except ProcessLookupError:
+            logger.debug("Process already terminated")
             pass  # Process already terminated
 
         return {
@@ -100,8 +127,11 @@ async def _execute_process_with_timeout(
 
 async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     """Execute hoogle command asynchronously and return the result."""
+    logger.info(f"Running hoogle command with args: {args}")
+
     try:
         cmd = [get_hoogle_path()] + args
+        logger.debug(f"Full command: {' '.join(cmd)}")
 
         process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -109,9 +139,18 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
             stderr=asyncio.subprocess.PIPE,
         )
 
-        return await _execute_process_with_timeout(process)
+        result = await _execute_process_with_timeout(process)
+
+        if result["success"]:
+            logger.info("Hoogle command executed successfully")
+            logger.debug(f"Output length: {len(result['output'])} characters")
+        else:
+            logger.error(f"Hoogle command failed: {result['error']}")
+
+        return result
 
     except Exception as e:
+        logger.error(f"Command execution error: {str(e)}")
         return {
             "success": False,
             "error": f"Command execution error: {str(e)}",
@@ -177,7 +216,10 @@ async def handle_hoogle_search(
     query = arguments.get("query", "")
     max_results = arguments.get("max_results", 10)
 
+    logger.info(f"Handling hoogle_search: query='{query}', max_results={max_results}")
+
     if not query:
+        logger.warning("Search query not specified")
         return [TextContent(type="text", text="Error: Search query not specified")]
 
     args = ["search"]
@@ -191,8 +233,10 @@ async def handle_hoogle_search(
         response_text = f"Hoogle search results (query: '{query}'):\n\n"
         if result["output"]:
             response_text += result["output"]
+            logger.debug(f"Search returned {len(result['output'].splitlines())} lines")
         else:
             response_text += "No search results found."
+            logger.info("No search results found")
     else:
         response_text = f"Search error: {result['error']}\n"
         if result["output"]:
@@ -207,7 +251,10 @@ async def handle_hoogle_info(
     """Handle hoogle_info tool calls."""
     name_param = arguments.get("name", "")
 
+    logger.info(f"Handling hoogle_info: name='{name_param}'")
+
     if not name_param:
+        logger.warning("Function name or type name not specified")
         return [
             TextContent(
                 type="text", text="Error: Function name or type name not specified"
@@ -221,8 +268,10 @@ async def handle_hoogle_info(
         response_text = f"Detailed information for '{name_param}':\n\n"
         if result["output"]:
             response_text += result["output"]
+            logger.debug(f"Info returned {len(result['output'].splitlines())} lines")
         else:
             response_text += "No information found."
+            logger.info("No information found")
     else:
         response_text = f"Information retrieval error: {result['error']}\n"
         if result["output"]:
@@ -234,6 +283,9 @@ async def handle_hoogle_info(
 @server.call_tool()
 async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolResponse:
     """Handle tool calls."""
+    logger.info(f"Tool call received: {name}")
+    logger.debug(f"Tool arguments: {arguments}")
+
     if arguments is None:
         arguments = {}
 
@@ -244,30 +296,48 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
 
     handler = tool_handlers.get(name)
     if handler:
-        return await handler(arguments)
+        try:
+            result = await handler(arguments)
+            logger.info(f"Tool {name} executed successfully")
+            return result
+        except Exception as e:
+            logger.error(f"Error executing tool {name}: {str(e)}")
+            return [
+                TextContent(
+                    type="text", text=f"Error executing tool '{name}': {str(e)}"
+                )
+            ]
     else:
+        logger.error(f"Unknown tool requested: {name}")
         return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
 
 
-async def main() -> None:
+async def main(log_level: str = "INFO") -> None:
     """Main server function."""
     global hoogle_path
+
+    setup_logging(log_level)
+    logger.info("Starting Hoogle MCP Server")
 
     # Check if hoogle is available before starting the server
     found_hoogle_path = shutil.which("hoogle")
     if not found_hoogle_path:
-        print(
+        error_msg = (
             "Error: hoogle command not found. "
-            "Please install the Haskell platform and hoogle before running this server.",
-            file=sys.stderr,
+            "Please install the Haskell platform and hoogle before running this server."
         )
+        logger.error(error_msg)
+        print(error_msg, file=sys.stderr)
         return
 
     hoogle_path = found_hoogle_path
+    logger.info(f"Hoogle found at: {hoogle_path}")
 
     from mcp.server.stdio import stdio_server
 
+    logger.info("Starting stdio server")
     async with stdio_server() as (read_stream, write_stream):
+        logger.info("Server running, waiting for requests...")
         await server.run(
             read_stream,
             write_stream,
@@ -297,9 +367,24 @@ def cli_main() -> None:
         "--version", action="version", version=f"%(prog)s {get_version()}"
     )
 
-    parser.parse_args()
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set the logging level (default: INFO)",
+    )
 
-    asyncio.run(main())
+    args = parser.parse_args()
+
+    try:
+        asyncio.run(main(log_level=args.log_level))
+    except KeyboardInterrupt:
+        logger.info("Server shutdown requested by user")
+        print("\nServer shutdown.", file=sys.stderr)
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        print(f"Unexpected error: {str(e)}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
