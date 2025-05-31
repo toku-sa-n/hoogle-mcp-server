@@ -93,7 +93,7 @@ jobs:
       - name: Check format with Prettier
         run: prettier --check .
 
-   markdown-lint:
+  markdown-lint:
     runs-on: ubuntu-latest
 
     steps:
