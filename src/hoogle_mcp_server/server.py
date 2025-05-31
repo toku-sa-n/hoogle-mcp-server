@@ -54,6 +54,50 @@ def get_hoogle_path() -> str:
     return hoogle_path
 
 
+async def _execute_process_with_timeout(
+    process: asyncio.subprocess.Process,
+) -> Dict[str, Any]:
+    """Execute process with timeout handling."""
+    try:
+        stdout, stderr = await asyncio.wait_for(
+            process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
+        )
+
+        # Handle case where returncode is None
+        if process.returncode is None:
+            return {
+                "success": False,
+                "error": "Process did not complete properly (returncode is None)",
+                "output": stdout.decode("utf-8") if stdout else "",
+                "return_code": None,
+            }
+
+        return {
+            "success": process.returncode == 0,
+            "output": stdout.decode("utf-8") if stdout else "",
+            "error": (
+                stderr.decode("utf-8") if stderr and process.returncode != 0 else None
+            ),
+            "return_code": process.returncode,
+        }
+
+    except asyncio.TimeoutError:
+        try:
+            process.kill()
+            await process.wait()
+        except ProcessLookupError:
+            pass  # Process already terminated
+
+        return {
+            "success": False,
+            "error": (
+                f"Command execution timed out "
+                f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
+            ),
+            "output": "",
+        }
+
+
 async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     """Execute hoogle command asynchronously and return the result."""
     try:
@@ -65,46 +109,7 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
             stderr=asyncio.subprocess.PIPE,
         )
 
-        try:
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
-            )
-
-            # Handle case where returncode is None
-            if process.returncode is None:
-                return {
-                    "success": False,
-                    "error": "Process did not complete properly (returncode is None)",
-                    "output": stdout.decode("utf-8") if stdout else "",
-                    "return_code": None,
-                }
-
-            return {
-                "success": process.returncode == 0,
-                "output": stdout.decode("utf-8") if stdout else "",
-                "error": (
-                    stderr.decode("utf-8")
-                    if stderr and process.returncode != 0
-                    else None
-                ),
-                "return_code": process.returncode,
-            }
-
-        except asyncio.TimeoutError:
-            try:
-                process.kill()
-                await process.wait()
-            except ProcessLookupError:
-                pass  # Process already terminated
-
-            return {
-                "success": False,
-                "error": (
-                    f"Command execution timed out "
-                    f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
-                ),
-                "output": "",
-            }
+        return await _execute_process_with_timeout(process)
 
     except Exception as e:
         return {
