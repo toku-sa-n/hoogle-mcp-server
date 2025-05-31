@@ -33,7 +33,7 @@ Before declaring a task as "done", make sure the following commands succeed. If 
 
 ```sh
 hatch test --all
-hatch run format:run
+hatch run format:check
 hatch run type-check:run --all
 hatch run security:run
 ```
