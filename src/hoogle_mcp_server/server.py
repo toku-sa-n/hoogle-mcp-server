@@ -315,7 +315,6 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
 
 async def main(log_level: LogLevel = "INFO") -> None:
     """Main server function."""
-    global hoogle_path
 
     setup_logging(log_level)
     logger.info("Starting Hoogle MCP Server")
@@ -331,6 +330,7 @@ async def main(log_level: LogLevel = "INFO") -> None:
         print(error_msg, file=sys.stderr)
         return
 
+    global hoogle_path
     hoogle_path = found_hoogle_path
     logger.info(f"Hoogle found at: {hoogle_path}")
 
