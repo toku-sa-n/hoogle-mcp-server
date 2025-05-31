@@ -28,7 +28,7 @@ from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
 
-from .types import ToolHandler, ToolResponse
+from .types import CommandResult, ToolHandler, ToolResponse
 
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
@@ -72,7 +72,7 @@ def get_hoogle_path() -> str:
 
 async def _execute_process_with_timeout(
     process: asyncio.subprocess.Process,
-) -> Dict[str, Any]:
+) -> CommandResult:
     """Execute process with timeout handling."""
     logger.debug(f"Executing process with PID: {process.pid}")
 
@@ -121,10 +121,11 @@ async def _execute_process_with_timeout(
                 f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
             ),
             "output": "",
+            "return_code": None,
         }
 
 
-async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
+async def run_hoogle_command(args: List[str]) -> CommandResult:
     """Execute hoogle command asynchronously and return the result."""
     logger.info(f"Running hoogle command with args: {args}")
 
@@ -154,6 +155,7 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
             "success": False,
             "error": f"Command execution error: {str(e)}",
             "output": "",
+            "return_code": None,
         }
 
 

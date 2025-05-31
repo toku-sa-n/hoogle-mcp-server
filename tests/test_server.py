@@ -30,6 +30,7 @@ class TestRunHoogleCommand:
         result = await run_hoogle_command(["search", "map"])
 
         assert not result["success"]
+        assert result["error"] is not None
         assert "Hoogle path not initialized" in result["error"]
 
     @pytest.mark.asyncio
@@ -102,6 +103,7 @@ class TestRunHoogleCommand:
         result = await run_hoogle_command(["search", "map"])
 
         assert not result["success"]
+        assert result["error"] is not None
         assert "timed out" in result["error"]
         assert f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)" in result["error"]
         mock_process.kill.assert_called_once()
@@ -127,6 +129,7 @@ class TestHandleCallTool:
             "success": True,
             "output": "Data.List map :: (a -> b) -> [a] -> [b]\n",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_call_tool("hoogle_search", {"query": "map"})
@@ -155,6 +158,7 @@ class TestHandleCallTool:
             "success": True,
             "output": "Detailed information about map function\n",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_call_tool("hoogle_info", {"name": "map"})
@@ -195,6 +199,7 @@ class TestHandleHoogleSearch:
             "success": True,
             "output": "Some search results\n",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_search({"query": max_length_query})
@@ -213,6 +218,7 @@ class TestHandleHoogleSearch:
             "success": True,
             "output": "Data.List map :: (a -> b) -> [a] -> [b]\n",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_search({"query": "map", "max_results": 5})
@@ -230,6 +236,7 @@ class TestHandleHoogleSearch:
             "success": True,
             "output": "",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_search({"query": "nonexistent"})
@@ -246,6 +253,7 @@ class TestHandleHoogleSearch:
             "success": False,
             "output": "",
             "error": "Invalid query",
+            "return_code": 1,
         }
 
         result = await handle_hoogle_search({"query": "invalid"})
@@ -267,6 +275,7 @@ class TestHandleHoogleSearch:
                 "Control.Monad liftM :: Monad m => (a1 -> r) -> m a1 -> m r\n"
             ),
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_search({"query": "map", "max_results": 4})
@@ -302,6 +311,7 @@ class TestHandleHoogleInfo:
             "success": True,
             "output": "Some function info\n",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_info({"name": max_length_name})
@@ -320,6 +330,7 @@ class TestHandleHoogleInfo:
             "success": True,
             "output": "Detailed information about map function\n",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_info({"name": "map"})
@@ -337,6 +348,7 @@ class TestHandleHoogleInfo:
             "success": True,
             "output": "",
             "error": None,
+            "return_code": 0,
         }
 
         result = await handle_hoogle_info({"name": "nonexistent"})
@@ -353,6 +365,7 @@ class TestHandleHoogleInfo:
             "success": False,
             "output": "",
             "error": "Function not found",
+            "return_code": 1,
         }
 
         result = await handle_hoogle_info({"name": "invalid"})

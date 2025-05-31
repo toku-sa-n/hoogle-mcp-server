@@ -16,9 +16,20 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Awaitable, Callable, Dict, Optional
+from typing_extensions import TypedDict
 
 from mcp.types import EmbeddedResource, ImageContent, TextContent
+
+
+class CommandResult(TypedDict):
+    """Result of executing a hoogle command."""
+
+    success: bool
+    output: str
+    error: Optional[str]
+    return_code: Optional[int]
+
 
 ToolResponse = list[TextContent | ImageContent | EmbeddedResource]
 ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
