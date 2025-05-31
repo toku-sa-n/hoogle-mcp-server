@@ -44,7 +44,8 @@ def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     """Execute hoogle command and return the result."""
     try:
         # Check if hoogle command is available using shutil.which
-        if not shutil.which("hoogle"):
+        hoogle_path = shutil.which("hoogle")
+        if not hoogle_path:
             return {
                 "success": False,
                 "error": (
@@ -54,7 +55,7 @@ def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
                 "output": "",
             }
 
-        cmd = ["hoogle"] + args
+        cmd = [hoogle_path] + args
         result = subprocess.run(
             cmd, capture_output=True, text=True, timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
         )

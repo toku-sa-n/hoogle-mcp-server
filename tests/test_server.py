@@ -42,7 +42,7 @@ class TestRunHoogleCommand:
         assert "Data.List map" in result["output"]
         assert result["return_code"] == 0
         mock_run.assert_called_once_with(
-            ["hoogle", "search", "map"],
+            ["/usr/bin/hoogle", "search", "map"],
             capture_output=True,
             text=True,
             timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS,
