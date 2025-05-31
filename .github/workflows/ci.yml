@@ -68,7 +68,7 @@ jobs:
       - name: Run type checking
         run: hatch run type-check:run --all
 
-  lint:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -82,8 +82,8 @@ jobs:
       - name: Install Hatch
         run: pip install hatch
 
-      - name: Run lint
-        run: hatch run lint:run
+      - name: Run format
+        run: hatch run format:run
 
   format-check:
     runs-on: ubuntu-latest

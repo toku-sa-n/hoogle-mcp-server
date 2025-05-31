@@ -1,8 +1,8 @@
-[envs.lint]
+[envs.format]
 detached = true
 dependencies = ["black", "isort", "flake8", "flake8-bugbear"]
 
-[envs.lint.scripts]
+[envs.format.scripts]
 run = ["black --check .", "isort --profile black --check-only .", "flake8 ."]
 
 [envs.type-check]
