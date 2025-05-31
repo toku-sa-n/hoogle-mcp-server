@@ -28,6 +28,7 @@ from mcp.server.models import InitializationOptions
 from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
 
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 30
+MAX_QUERY_LENGTH = 500
 
 server: Server = Server("hoogle-mcp-server")
 
@@ -147,6 +148,14 @@ async def handle_hoogle_search(
     if not query:
         return [TextContent(type="text", text="Error: Search query not specified")]
 
+    if len(query) > MAX_QUERY_LENGTH:
+        return [
+            TextContent(
+                type="text",
+                text=f"Error: Query too long. Maximum length is {MAX_QUERY_LENGTH} characters, got {len(query)}",
+            )
+        ]
+
     args = ["search"]
     args.extend(["--count", str(max_results)])
     args.append("--")
@@ -178,6 +187,14 @@ async def handle_hoogle_info(
         return [
             TextContent(
                 type="text", text="Error: Function name or type name not specified"
+            )
+        ]
+
+    if len(name_param) > MAX_QUERY_LENGTH:
+        return [
+            TextContent(
+                type="text",
+                text=f"Error: Name too long. Maximum length is {MAX_QUERY_LENGTH} characters, got {len(name_param)}",
             )
         ]
 

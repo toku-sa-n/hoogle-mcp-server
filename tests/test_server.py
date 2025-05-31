@@ -6,6 +6,7 @@ import pytest
 
 from hoogle_mcp_server.server import (
     HOOGLE_COMMAND_TIMEOUT_SECONDS,
+    MAX_QUERY_LENGTH,
     handle_call_tool,
     handle_hoogle_info,
     handle_hoogle_search,
@@ -160,6 +161,37 @@ class TestHandleHoogleSearch:
         assert "Error: Search query not specified" in result[0].text
 
     @pytest.mark.asyncio
+    async def test_query_too_long(self):
+        """Test handle_hoogle_search with query that exceeds maximum length."""
+        long_query = "a" * (MAX_QUERY_LENGTH + 1)
+        result = await handle_hoogle_search({"query": long_query})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Error: Query too long" in result[0].text
+        assert f"Maximum length is {MAX_QUERY_LENGTH} characters" in result[0].text
+        assert f"got {len(long_query)}" in result[0].text
+
+    @pytest.mark.asyncio
+    @patch("hoogle_mcp_server.server.run_hoogle_command")
+    async def test_query_at_max_length(self, mock_run_hoogle):
+        """Test handle_hoogle_search with query at maximum allowed length."""
+        max_length_query = "a" * MAX_QUERY_LENGTH
+        mock_run_hoogle.return_value = {
+            "success": True,
+            "output": "Some search results\n",
+            "error": None,
+        }
+
+        result = await handle_hoogle_search({"query": max_length_query})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Error" not in result[0].text  # Should not have error
+        assert "Some search results" in result[0].text
+        mock_run_hoogle.assert_called_once()
+
+    @pytest.mark.asyncio
     @patch("hoogle_mcp_server.server.run_hoogle_command")
     async def test_success(self, mock_run_hoogle):
         """Test successful handle_hoogle_search."""
@@ -246,6 +278,37 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Error: Function name or type name not specified" in result[0].text
+
+    @pytest.mark.asyncio
+    async def test_name_too_long(self):
+        """Test handle_hoogle_info with name that exceeds maximum length."""
+        long_name = "a" * (MAX_QUERY_LENGTH + 1)
+        result = await handle_hoogle_info({"name": long_name})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Error: Name too long" in result[0].text
+        assert f"Maximum length is {MAX_QUERY_LENGTH} characters" in result[0].text
+        assert f"got {len(long_name)}" in result[0].text
+
+    @pytest.mark.asyncio
+    @patch("hoogle_mcp_server.server.run_hoogle_command")
+    async def test_name_at_max_length(self, mock_run_hoogle):
+        """Test handle_hoogle_info with name at maximum allowed length."""
+        max_length_name = "a" * MAX_QUERY_LENGTH
+        mock_run_hoogle.return_value = {
+            "success": True,
+            "output": "Some function info\n",
+            "error": None,
+        }
+
+        result = await handle_hoogle_info({"name": max_length_name})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Error" not in result[0].text  # Should not have error
+        assert "Some function info" in result[0].text
+        mock_run_hoogle.assert_called_once()
 
     @pytest.mark.asyncio
     @patch("hoogle_mcp_server.server.run_hoogle_command")
