@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import asyncio
 import shutil
-import subprocess
 from importlib import metadata
 from typing import Any, Dict, List, Callable, Awaitable
 
@@ -44,8 +43,8 @@ def get_version() -> str:
         return "(no version info)"
 
 
-def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
-    """Execute hoogle command and return the result."""
+async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
+    """Execute hoogle command asynchronously and return the result."""
     try:
         hoogle_path = shutil.which("hoogle")
         if not hoogle_path:
@@ -59,30 +58,48 @@ def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
             }
 
         cmd = [hoogle_path] + args
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS,
-            shell=False,
+
+        # Create subprocess asynchronously
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
 
-        return {
-            "success": result.returncode == 0,
-            "output": result.stdout,
-            "error": result.stderr if result.returncode != 0 else None,
-            "return_code": result.returncode,
-        }
+        try:
+            # Wait for completion with timeout
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
+            )
 
-    except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": (
-                f"Command execution timed out "
-                f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
-            ),
-            "output": "",
-        }
+            return {
+                "success": process.returncode == 0,
+                "output": stdout.decode("utf-8") if stdout else "",
+                "error": (
+                    stderr.decode("utf-8")
+                    if stderr and process.returncode != 0
+                    else None
+                ),
+                "return_code": process.returncode,
+            }
+
+        except asyncio.TimeoutError:
+            # Kill the process if it times out
+            try:
+                process.kill()
+                await process.wait()
+            except ProcessLookupError:
+                pass  # Process already terminated
+
+            return {
+                "success": False,
+                "error": (
+                    f"Command execution timed out "
+                    f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
+                ),
+                "output": "",
+            }
+
     except Exception as e:
         return {
             "success": False,
@@ -169,7 +186,7 @@ async def handle_hoogle_search(
     args.append("--")
     args.append(query)
 
-    result = run_hoogle_command(args)
+    result = await run_hoogle_command(args)
 
     if result["success"]:
         response_text = f"Hoogle search results (query: '{query}'):\n\n"
@@ -203,7 +220,7 @@ async def handle_hoogle_info(
         return [TextContent(type="text", text=validation_error)]
 
     args = ["search", "-i", "--", name_param]
-    result = run_hoogle_command(args)
+    result = await run_hoogle_command(args)
 
     if result["success"]:
         response_text = f"Detailed information for '{name_param}':\n\n"
