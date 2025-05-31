@@ -27,6 +27,10 @@ Show emotions openly (喜怒哀楽) and don’t be afraid to get a bit hype.
 
 This project is managed by `hatch`. Installing dependencies must be done in its environment.
 
+## Comments
+
+Do not write any obvious comments.
+
 ## Validation (mandatory gate)
 
 Before declaring a task as "done", make sure the following commands succeed. If one of the following commands fails and you make a fix, re-run all the commands from the start.

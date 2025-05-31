@@ -19,8 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import asyncio
 import shutil
+import sys
 from importlib import metadata
-from typing import Any, Dict, List, Callable, Awaitable
+from typing import Any, Dict, List, Callable, Awaitable, Optional
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
@@ -33,6 +34,7 @@ ToolResponse = list[TextContent | ImageContent | EmbeddedResource]
 ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
 
 server: Server = Server("hoogle-mcp-server")
+hoogle_path: Optional[str] = None
 
 
 def get_version() -> str:
@@ -43,21 +45,19 @@ def get_version() -> str:
         return "(no version info)"
 
 
+def get_hoogle_path() -> str:
+    """Get the hoogle path, raising an error if not initialized."""
+    if hoogle_path is None:
+        raise RuntimeError(
+            "Hoogle path not initialized. Server startup may have failed."
+        )
+    return hoogle_path
+
+
 async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     """Execute hoogle command asynchronously and return the result."""
     try:
-        hoogle_path = shutil.which("hoogle")
-        if not hoogle_path:
-            return {
-                "success": False,
-                "error": (
-                    "hoogle command not found. "
-                    "Please check your Haskell platform installation."
-                ),
-                "output": "",
-            }
-
-        cmd = [hoogle_path] + args
+        cmd = [get_hoogle_path()] + args
 
         process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -253,6 +253,20 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
 
 async def main() -> None:
     """Main server function."""
+    global hoogle_path
+
+    # Check if hoogle is available before starting the server
+    found_hoogle_path = shutil.which("hoogle")
+    if not found_hoogle_path:
+        print(
+            "Error: hoogle command not found. "
+            "Please install the Haskell platform and hoogle before running this server.",
+            file=sys.stderr,
+        )
+        return
+
+    hoogle_path = found_hoogle_path
+
     from mcp.server.stdio import stdio_server
 
     async with stdio_server() as (read_stream, write_stream):
