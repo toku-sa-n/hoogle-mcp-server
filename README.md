@@ -11,16 +11,16 @@ A Model Context Protocol (MCP) server for the Haskell API search engine [Hoogle]
 
 1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/toku-sa-n/hoogle-mcp-server
-    cd hoogle-mcp-server
-    ```
+   ```bash
+   git clone https://github.com/toku-sa-n/hoogle-mcp-server
+   cd hoogle-mcp-server
+   ```
 
 2. Install `hoogle-mcp-server` using [`pipx`](https://pipx.pypa.io/stable/):
 
-    ```bash
-    pipx install .
-    ```
+   ```bash
+   pipx install .
+   ```
 
 ## MCP Configuration Example
 
