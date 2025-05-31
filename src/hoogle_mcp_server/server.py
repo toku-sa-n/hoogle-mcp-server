@@ -149,6 +149,7 @@ async def handle_hoogle_search(
 
     args = ["search"]
     args.extend(["--count", str(max_results)])
+    args.append("--")
     args.append(query)
 
     result = run_hoogle_command(args)
@@ -180,7 +181,7 @@ async def handle_hoogle_info(
             )
         ]
 
-    args = ["search", "-i", name_param]
+    args = ["search", "-i", "--", name_param]
     result = run_hoogle_command(args)
 
     if result["success"]:

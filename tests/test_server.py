@@ -107,7 +107,9 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
-        mock_run_hoogle.assert_called_once_with(["search", "--count", "10", "map"])
+        mock_run_hoogle.assert_called_once_with(
+            ["search", "--count", "10", "--", "map"]
+        )
 
     @pytest.mark.asyncio
     async def test_hoogle_info_missing_name(self):
@@ -133,7 +135,7 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Detailed information" in result[0].text
-        mock_run_hoogle.assert_called_once_with(["search", "-i", "map"])
+        mock_run_hoogle.assert_called_once_with(["search", "-i", "--", "map"])
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self):
@@ -172,7 +174,7 @@ class TestHandleHoogleSearch:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
-        mock_run_hoogle.assert_called_once_with(["search", "--count", "5", "map"])
+        mock_run_hoogle.assert_called_once_with(["search", "--count", "5", "--", "map"])
 
     @pytest.mark.asyncio
     @patch("hoogle_mcp_server.server.run_hoogle_command")
@@ -230,7 +232,7 @@ class TestHandleHoogleSearch:
         assert "Prelude map" in response_text
         assert "Data.Functor fmap" in response_text
         assert "Control.Monad liftM" in response_text
-        mock_run_hoogle.assert_called_once_with(["search", "--count", "4", "map"])
+        mock_run_hoogle.assert_called_once_with(["search", "--count", "4", "--", "map"])
 
 
 class TestHandleHoogleInfo:
@@ -260,7 +262,7 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Detailed information" in result[0].text
-        mock_run_hoogle.assert_called_once_with(["search", "-i", "map"])
+        mock_run_hoogle.assert_called_once_with(["search", "-i", "--", "map"])
 
     @pytest.mark.asyncio
     @patch("hoogle_mcp_server.server.run_hoogle_command")
