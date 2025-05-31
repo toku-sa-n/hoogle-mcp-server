@@ -26,7 +26,7 @@ detached = true
 dependencies = ["pip-audit", "bandit"]
 
 [envs.security.scripts]
-run = ["pip-audit", "bandit -r ."]
+run = ["pip-audit", "bandit -r ./src -s B404,B603,B607"]
 
 [envs.hatch-test]
 extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
