@@ -105,16 +105,6 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
         }
 
 
-def validate_query_length(query: str, param_name: str = "query") -> str | None:
-    """Validate query length and return error message if invalid, None if valid."""
-    if len(query) > MAX_QUERY_LENGTH:
-        return (
-            f"Error: {param_name.capitalize()} too long. "
-            f"Maximum length is {MAX_QUERY_LENGTH} characters, got {len(query)}"
-        )
-    return None
-
-
 @server.list_tools()
 async def handle_list_tools() -> list[Tool]:
     """List available tools."""
@@ -133,6 +123,7 @@ async def handle_list_tools() -> list[Tool]:
                         "description": (
                             "Search query (function name, type signature, or keywords)"
                         ),
+                        "maxLength": MAX_QUERY_LENGTH,
                     },
                     "max_results": {
                         "type": "integer",
@@ -156,6 +147,7 @@ async def handle_list_tools() -> list[Tool]:
                         "description": (
                             "Function name or type name to get detailed information for"
                         ),
+                        "maxLength": MAX_QUERY_LENGTH,
                     }
                 },
                 "required": ["name"],
@@ -173,10 +165,6 @@ async def handle_hoogle_search(
 
     if not query:
         return [TextContent(type="text", text="Error: Search query not specified")]
-
-    validation_error = validate_query_length(query, "query")
-    if validation_error:
-        return [TextContent(type="text", text=validation_error)]
 
     args = ["search"]
     args.extend(["--count", str(max_results)])
@@ -211,10 +199,6 @@ async def handle_hoogle_info(
                 type="text", text="Error: Function name or type name not specified"
             )
         ]
-
-    validation_error = validate_query_length(name_param, "name")
-    if validation_error:
-        return [TextContent(type="text", text=validation_error)]
 
     args = ["search", "-i", "--", name_param]
     result = await run_hoogle_command(args)

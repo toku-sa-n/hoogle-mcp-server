@@ -20,25 +20,26 @@ class TestRunHoogleCommand:
     """Test cases for run_hoogle_command function."""
 
     @pytest.mark.asyncio
-    @patch("shutil.which")
-    async def test_hoogle_not_found(self, mock_which: Any) -> None:
+    @patch("hoogle_mcp_server.server.get_hoogle_path")
+    async def test_hoogle_not_found(self, mock_get_hoogle_path: Any) -> None:
         """Test behavior when hoogle command is not found."""
-        mock_which.return_value = None
+        mock_get_hoogle_path.side_effect = RuntimeError(
+            "Hoogle path not initialized. Server startup may have failed."
+        )
 
         result = await run_hoogle_command(["search", "map"])
 
         assert not result["success"]
-        assert "hoogle command not found" in result["error"]
-        assert "Please check your Haskell platform installation" in result["error"]
+        assert "Hoogle path not initialized" in result["error"]
 
     @pytest.mark.asyncio
     @patch("asyncio.create_subprocess_exec")
-    @patch("shutil.which")
+    @patch("hoogle_mcp_server.server.get_hoogle_path")
     async def test_successful_hoogle_search(
-        self, mock_which: Any, mock_create_subprocess: Any
+        self, mock_get_hoogle_path: Any, mock_create_subprocess: Any
     ) -> None:
         """Test successful hoogle search command."""
-        mock_which.return_value = "/usr/bin/hoogle"
+        mock_get_hoogle_path.return_value = "/usr/bin/hoogle"
 
         mock_process = AsyncMock()
         mock_process.returncode = 0
@@ -63,12 +64,12 @@ class TestRunHoogleCommand:
 
     @pytest.mark.asyncio
     @patch("asyncio.create_subprocess_exec")
-    @patch("shutil.which")
+    @patch("hoogle_mcp_server.server.get_hoogle_path")
     async def test_hoogle_command_failure(
-        self, mock_which: Any, mock_create_subprocess: Any
+        self, mock_get_hoogle_path: Any, mock_create_subprocess: Any
     ) -> None:
         """Test hoogle command failure."""
-        mock_which.return_value = "/usr/bin/hoogle"
+        mock_get_hoogle_path.return_value = "/usr/bin/hoogle"
 
         mock_process = AsyncMock()
         mock_process.returncode = 1
@@ -84,12 +85,12 @@ class TestRunHoogleCommand:
     @pytest.mark.asyncio
     @patch("asyncio.wait_for")
     @patch("asyncio.create_subprocess_exec")
-    @patch("shutil.which")
+    @patch("hoogle_mcp_server.server.get_hoogle_path")
     async def test_timeout_handling(
-        self, mock_which: Any, mock_create_subprocess: Any, mock_wait_for: Any
+        self, mock_get_hoogle_path: Any, mock_create_subprocess: Any, mock_wait_for: Any
     ) -> None:
         """Test timeout handling."""
-        mock_which.return_value = "/usr/bin/hoogle"
+        mock_get_hoogle_path.return_value = "/usr/bin/hoogle"
 
         mock_process = AsyncMock()
         mock_process.kill = Mock()  # kill() should be sync
@@ -184,18 +185,6 @@ class TestHandleHoogleSearch:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Error: Search query not specified" in result[0].text
-
-    @pytest.mark.asyncio
-    async def test_query_too_long(self) -> None:
-        """Test handle_hoogle_search with query that exceeds maximum length."""
-        long_query = "a" * (MAX_QUERY_LENGTH + 1)
-        result = await handle_hoogle_search({"query": long_query})
-
-        assert len(result) == 1
-        assert result[0].type == "text"
-        assert "Error: Query too long" in result[0].text
-        assert f"Maximum length is {MAX_QUERY_LENGTH} characters" in result[0].text
-        assert f"got {len(long_query)}" in result[0].text
 
     @pytest.mark.asyncio
     @patch("hoogle_mcp_server.server.run_hoogle_command")
@@ -303,18 +292,6 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Error: Function name or type name not specified" in result[0].text
-
-    @pytest.mark.asyncio
-    async def test_name_too_long(self) -> None:
-        """Test handle_hoogle_info with name that exceeds maximum length."""
-        long_name = "a" * (MAX_QUERY_LENGTH + 1)
-        result = await handle_hoogle_info({"name": long_name})
-
-        assert len(result) == 1
-        assert result[0].type == "text"
-        assert "Error: Name too long" in result[0].text
-        assert f"Maximum length is {MAX_QUERY_LENGTH} characters" in result[0].text
-        assert f"got {len(long_name)}" in result[0].text
 
     @pytest.mark.asyncio
     @patch("hoogle_mcp_server.server.run_hoogle_command")
