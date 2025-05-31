@@ -1,86 +1,86 @@
 name: CI
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Haskell
-              uses: haskell-actions/setup@96f3dafd067155f32643c2a0757ab71d2910e2c2 # v2.8.0
-              with:
-                  ghc-version: "9.4.7"
-                  cabal-version: "3.10.1.0"
+      - name: Set up Haskell
+        uses: haskell-actions/setup@96f3dafd067155f32643c2a0757ab71d2910e2c2 # v2.8.0
+        with:
+          ghc-version: "9.4.7"
+          cabal-version: "3.10.1.0"
 
-            - name: Cache Haskell packages
-              uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-              with:
-                  path: |
-                      ~/.cabal
-                      ~/.ghc
-                  key: ${{ runner.os }}-haskell-${{ hashFiles('**/*.cabal') }}
-                  restore-keys: |
-                      ${{ runner.os }}-haskell-
+      - name: Cache Haskell packages
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            ~/.cabal
+            ~/.ghc
+          key: ${{ runner.os }}-haskell-${{ hashFiles('**/*.cabal') }}
+          restore-keys: |
+            ${{ runner.os }}-haskell-
 
-            - name: Install Hoogle
-              run: |
-                  cabal update
-                  cabal install hoogle --install-method=copy
-                  echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+      - name: Install Hoogle
+        run: |
+          cabal update
+          cabal install hoogle --install-method=copy
+          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
 
-            - name: Generate Hoogle database
-              run: hoogle generate
+      - name: Generate Hoogle database
+        run: hoogle generate
 
-            - name: Run tests
-              run: hatch test --all
+      - name: Run tests
+        run: hatch test --all
 
-    type-check:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-            - name: Run type checking
-              run: hatch run type-check:run --all
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run type checking
+        run: hatch run type-check:run --all
 
-    lint:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Run lint
-              run: hatch run lint:run
+      - name: Run lint
+        run: hatch run lint:run
 
-    format-check:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Node.js
-              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-              with:
-                  node-version: "20"
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
 
-            - name: Install Prettier
-              run: npm install -g prettier
+      - name: Install Prettier
+        run: npm install -g prettier
 
-            - name: Check format with Prettier
-              run: prettier --check .
+      - name: Check format with Prettier
+        run: prettier --check .
 
-    security:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Hatch
-              run: pip install hatch
+      - name: Set up Hatch
+        run: pip install hatch
 
-            - name: Run security checks
-              run: hatch run security:run
+      - name: Run security checks
+        run: hatch run security:run
