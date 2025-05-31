@@ -21,7 +21,7 @@ import asyncio
 import shutil
 import subprocess
 from importlib import metadata
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Callable, Awaitable
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
@@ -29,6 +29,9 @@ from mcp.types import EmbeddedResource, ImageContent, TextContent, Tool
 
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 30
 MAX_QUERY_LENGTH = 500
+
+ToolResponse = list[TextContent | ImageContent | EmbeddedResource]
+ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
 
 server: Server = Server("hoogle-mcp-server")
 
@@ -44,7 +47,6 @@ def get_version() -> str:
 def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
     """Execute hoogle command and return the result."""
     try:
-        # Check if hoogle command is available using shutil.which
         hoogle_path = shutil.which("hoogle")
         if not hoogle_path:
             return {
@@ -149,8 +151,8 @@ async def handle_list_tools() -> list[Tool]:
 
 
 async def handle_hoogle_search(
-    arguments: dict,
-) -> list[TextContent | ImageContent | EmbeddedResource]:
+    arguments: Dict[str, Any],
+) -> ToolResponse:
     """Handle hoogle_search tool calls."""
     query = arguments.get("query", "")
     max_results = arguments.get("max_results", 10)
@@ -158,7 +160,6 @@ async def handle_hoogle_search(
     if not query:
         return [TextContent(type="text", text="Error: Search query not specified")]
 
-    # Validate query length
     validation_error = validate_query_length(query, "query")
     if validation_error:
         return [TextContent(type="text", text=validation_error)]
@@ -185,8 +186,8 @@ async def handle_hoogle_search(
 
 
 async def handle_hoogle_info(
-    arguments: dict,
-) -> list[TextContent | ImageContent | EmbeddedResource]:
+    arguments: Dict[str, Any],
+) -> ToolResponse:
     """Handle hoogle_info tool calls."""
     name_param = arguments.get("name", "")
 
@@ -197,7 +198,6 @@ async def handle_hoogle_info(
             )
         ]
 
-    # Validate name parameter length
     validation_error = validate_query_length(name_param, "name")
     if validation_error:
         return [TextContent(type="text", text=validation_error)]
@@ -220,22 +220,24 @@ async def handle_hoogle_info(
 
 
 @server.call_tool()
-async def handle_call_tool(
-    name: str, arguments: dict | None
-) -> list[TextContent | ImageContent | EmbeddedResource]:
+async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolResponse:
     """Handle tool calls."""
     if arguments is None:
         arguments = {}
 
-    if name == "hoogle_search":
-        return await handle_hoogle_search(arguments)
-    elif name == "hoogle_info":
-        return await handle_hoogle_info(arguments)
+    tool_handlers: Dict[str, ToolHandler] = {
+        "hoogle_search": handle_hoogle_search,
+        "hoogle_info": handle_hoogle_info,
+    }
+
+    handler = tool_handlers.get(name)
+    if handler:
+        return await handler(arguments)
     else:
         return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
 
 
-async def main():
+async def main() -> None:
     """Main server function."""
     from mcp.server.stdio import stdio_server
 
@@ -254,7 +256,7 @@ async def main():
         )
 
 
-def cli_main():
+def cli_main() -> None:
     """CLI entry point that runs the async main function."""
     parser = argparse.ArgumentParser(
         prog="hoogle-mcp-server",
