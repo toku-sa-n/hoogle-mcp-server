@@ -31,6 +31,10 @@ This project is managed by `hatch`. Installing dependencies must be done in its 
 
 Do not write any obvious comments.
 
+## Type definitions
+
+Type definitions must be in `types.py`
+
 ## Validation (mandatory gate)
 
 Before declaring a task as "done", make sure the following commands succeed. If one of the following commands fails and you make a fix, re-run all the commands from the start.

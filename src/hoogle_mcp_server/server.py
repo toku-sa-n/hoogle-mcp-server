@@ -22,13 +22,13 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
 
-from .types import CommandResult, ToolHandler, ToolResponse
+from .types import CommandResult, LogLevel, ToolHandler, ToolResponse
 
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
@@ -38,7 +38,7 @@ hoogle_path: Optional[str] = None
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(log_level: str = "INFO") -> None:
+def setup_logging(log_level: LogLevel = "INFO") -> None:
     """Setup logging configuration with specified log level."""
     # Convert string to logging level
     numeric_level = getattr(logging, log_level.upper(), None)
@@ -313,7 +313,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
         return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
 
 
-async def main(log_level: str = "INFO") -> None:
+async def main(log_level: LogLevel = "INFO") -> None:
     """Main server function."""
     global hoogle_path
 
