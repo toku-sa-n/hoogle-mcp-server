@@ -59,7 +59,6 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
 
         cmd = [hoogle_path] + args
 
-        # Create subprocess asynchronously
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
@@ -67,7 +66,6 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
         )
 
         try:
-            # Wait for completion with timeout
             stdout, stderr = await asyncio.wait_for(
                 process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
             )
@@ -84,7 +82,6 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
             }
 
         except asyncio.TimeoutError:
-            # Kill the process if it times out
             try:
                 process.kill()
                 await process.wait()
@@ -288,10 +285,8 @@ def cli_main() -> None:
         "--version", action="version", version=f"%(prog)s {get_version()}"
     )
 
-    # Parse arguments (variable unused, but parser.parse_args() needed)
     parser.parse_args()
 
-    # Run the server
     asyncio.run(main())
 
 

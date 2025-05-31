@@ -40,7 +40,6 @@ class TestRunHoogleCommand:
         """Test successful hoogle search command."""
         mock_which.return_value = "/usr/bin/hoogle"
 
-        # Mock process
         mock_process = AsyncMock()
         mock_process.returncode = 0
         mock_process.communicate.return_value = (
@@ -71,7 +70,6 @@ class TestRunHoogleCommand:
         """Test hoogle command failure."""
         mock_which.return_value = "/usr/bin/hoogle"
 
-        # Mock process with failure
         mock_process = AsyncMock()
         mock_process.returncode = 1
         mock_process.communicate.return_value = (b"", b"Invalid query")
@@ -93,14 +91,11 @@ class TestRunHoogleCommand:
         """Test timeout handling."""
         mock_which.return_value = "/usr/bin/hoogle"
 
-        # Mock process with kill as a regular (non-async) method
         mock_process = AsyncMock()
-        # Configure kill and wait methods properly
         mock_process.kill = Mock()  # kill() should be sync
         mock_process.wait = AsyncMock()  # wait() should be async
         mock_create_subprocess.return_value = mock_process
 
-        # Mock timeout
         mock_wait_for.side_effect = asyncio.TimeoutError()
 
         result = await run_hoogle_command(["search", "map"])
@@ -108,7 +103,6 @@ class TestRunHoogleCommand:
         assert not result["success"]
         assert "timed out" in result["error"]
         assert f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)" in result["error"]
-        # Verify process was killed
         mock_process.kill.assert_called_once()
 
 
@@ -218,7 +212,7 @@ class TestHandleHoogleSearch:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error" not in result[0].text  # Should not have error
+        assert "Error" not in result[0].text
         assert "Some search results" in result[0].text
         mock_run_hoogle.assert_called_once()
 
@@ -337,7 +331,7 @@ class TestHandleHoogleInfo:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error" not in result[0].text  # Should not have error
+        assert "Error" not in result[0].text
         assert "Some function info" in result[0].text
         mock_run_hoogle.assert_called_once()
 
