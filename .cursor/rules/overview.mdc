@@ -13,7 +13,7 @@ This project is managed by `hatch`. Installing dependencies must be done in its 
 
 ## Validation (mandatory gate)
 
-1. Whenever any file is modified, you must execute the Validation commands below in the given order.  
+1. Whenever you modify any files, you must execute the validation commands below in the given order.  
 2. If a command exits with a non-zero status, you must automatically fix the issue and rerun the entire list until every command succeeds.  
 3. After all commands succeed, you may stop editing or proceed to next.
 

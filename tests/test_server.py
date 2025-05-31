@@ -16,37 +16,46 @@ from hoogle_mcp_server.server import (
 class TestRunHoogleCommand:
     """Test cases for run_hoogle_command function."""
 
-    @patch("subprocess.run")
-    def test_hoogle_not_found(self, mock_run):
+    @patch("shutil.which")
+    def test_hoogle_not_found(self, mock_which):
         """Test behavior when hoogle command is not found."""
-        mock_run.return_value = MagicMock(returncode=1)
+        mock_which.return_value = None
 
         result = run_hoogle_command(["search", "map"])
 
         assert not result["success"]
         assert "hoogle command not found" in result["error"]
+        assert "Please check your Haskell platform installation" in result["error"]
 
     @patch("subprocess.run")
-    def test_successful_hoogle_search(self, mock_run):
+    @patch("shutil.which")
+    def test_successful_hoogle_search(self, mock_which, mock_run):
         """Test successful hoogle search command."""
-        mock_which = MagicMock(returncode=0)
-        mock_search = MagicMock(
-            returncode=0, stdout="Data.List map :: (a -> b) -> [a] -> [b]\n"
+        mock_which.return_value = "/usr/bin/hoogle"
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="Data.List map :: (a -> b) -> [a] -> [b]\n", stderr=""
         )
-        mock_run.side_effect = [mock_which, mock_search]
 
         result = run_hoogle_command(["search", "map"])
 
         assert result["success"]
         assert "Data.List map" in result["output"]
         assert result["return_code"] == 0
+        mock_run.assert_called_once_with(
+            ["hoogle", "search", "map"],
+            capture_output=True,
+            text=True,
+            timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS,
+        )
 
     @patch("subprocess.run")
-    def test_hoogle_command_failure(self, mock_run):
+    @patch("shutil.which")
+    def test_hoogle_command_failure(self, mock_which, mock_run):
         """Test hoogle command failure."""
-        mock_which = MagicMock(returncode=0)
-        mock_search = MagicMock(returncode=1, stdout="", stderr="Invalid query")
-        mock_run.side_effect = [mock_which, mock_search]
+        mock_which.return_value = "/usr/bin/hoogle"
+        mock_run.return_value = MagicMock(
+            returncode=1, stdout="", stderr="Invalid query"
+        )
 
         result = run_hoogle_command(["search", "invalid query"])
 
@@ -55,20 +64,19 @@ class TestRunHoogleCommand:
         assert result["return_code"] == 1
 
     @patch("subprocess.run")
-    def test_timeout_handling(self, mock_run):
+    @patch("shutil.which")
+    def test_timeout_handling(self, mock_which, mock_run):
         """Test timeout handling."""
         from subprocess import TimeoutExpired
 
-        mock_which = MagicMock(returncode=0)
-        mock_run.side_effect = [
-            mock_which,
-            TimeoutExpired("hoogle", HOOGLE_COMMAND_TIMEOUT_SECONDS),
-        ]
+        mock_which.return_value = "/usr/bin/hoogle"
+        mock_run.side_effect = TimeoutExpired("hoogle", HOOGLE_COMMAND_TIMEOUT_SECONDS)
 
         result = run_hoogle_command(["search", "map"])
 
         assert not result["success"]
         assert "timed out" in result["error"]
+        assert f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)" in result["error"]
 
 
 class TestHandleCallTool:
