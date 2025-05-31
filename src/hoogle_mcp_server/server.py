@@ -70,6 +70,15 @@ async def run_hoogle_command(args: List[str]) -> Dict[str, Any]:
                 process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
             )
 
+            # Handle case where returncode is None
+            if process.returncode is None:
+                return {
+                    "success": False,
+                    "error": "Process did not complete properly (returncode is None)",
+                    "output": stdout.decode("utf-8") if stdout else "",
+                    "return_code": None,
+                }
+
             return {
                 "success": process.returncode == 0,
                 "output": stdout.decode("utf-8") if stdout else "",
