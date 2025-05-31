@@ -60,6 +60,9 @@ jobs:
           python-version: "3.13"
           cache: pip
 
+      - name: Install Hatch
+        run: pip install hatch
+
       - name: Run type checking
         run: hatch run type-check:run --all
 
@@ -73,6 +76,9 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
+
+      - name: Install Hatch
+        run: pip install hatch
 
       - name: Run lint
         run: hatch run lint:run

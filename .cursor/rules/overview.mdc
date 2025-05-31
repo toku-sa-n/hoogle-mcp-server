@@ -13,4 +13,4 @@ This project is managed by `hatch`. Installing dependencies must be done in its 
 
 ## Validation
 
-You must read the CI configuration file, and make sure all the checks pass on the local machine too once you have modified something. You can finish your editing or proceed to next once the checks succeed.
+You must read the CI configuration file, and make sure all the checks in all the jobs pass on the local machine too once you have modified something. You can finish your editing or proceed to next once the checks succeed.
