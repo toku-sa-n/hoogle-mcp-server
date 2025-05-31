@@ -1,11 +1,15 @@
 # Hoogle MCP Server
 
-A Model Context Protocol (MCP) server for the Haskell API search engine [Hoogle](https://hoogle.haskell.org/). This enables language models to search for Haskell function definitions and type signatures using Hoogle commands.
+A Model Context Protocol (MCP) server for the Haskell API search engine
+[Hoogle](https://hoogle.haskell.org/). This enables language models to search
+for Haskell function definitions and type signatures using Hoogle commands.
 
 ## Requirements
 
 - Python 3.8 or higher.
-- [Hoogle](https://hoogle.haskell.org/) must be installed on the system. Refer to the [README](https://github.com/ndmitchell/hoogle) for installation instructions.
+- [Hoogle](https://hoogle.haskell.org/) must be installed on the system.
+  Refer to the [README](https://github.com/ndmitchell/hoogle) for installation
+  instructions.
 
 ## Installation
 
@@ -24,7 +28,9 @@ A Model Context Protocol (MCP) server for the Haskell API search engine [Hoogle]
 
 ## MCP Configuration Example
 
-Configuration example for use with Claude Desktop or MCP-compatible clients (this configuration example is provided under the [WTFPL license](https://www.wtfpl.net/about/)):
+Configuration example for use with Claude Desktop or MCP-compatible clients
+(this configuration example is provided under the
+[WTFPL license](https://www.wtfpl.net/about/)):
 
 ```json
 {
@@ -65,7 +71,8 @@ Get detailed information about a specific function or type using Hoogle's info s
 
 **Parameters:**
 
-- `name` (required): Function name or type name to get detailed information for
+- `name` (required): Function name or type name to get detailed information
+  for
 
 **Example:**
 
@@ -77,7 +84,8 @@ Get detailed information about a specific function or type using Hoogle's info s
 
 ## License
 
-This project is licensed under AGPL 3.0 or later. See the [LICENSE](LICENSE) file for details.
+This project is licensed under AGPL 3.0 or later. See the
+[LICENSE](LICENSE) file for details.
 
 ## Contributing
 
