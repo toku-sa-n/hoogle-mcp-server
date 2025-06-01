@@ -129,18 +129,19 @@ async def handle_hoogle_search(
 
     result = await hoogle_client.search(query, max_results)
 
-    if result["success"]:
-        response_text = f"Hoogle search results (query: '{query}'):\n\n"
-        if result["output"]:
-            response_text += result["output"]
-            logger.debug(f"Search returned {len(result['output'].splitlines())} lines")
-        else:
-            response_text += "No search results found."
-            logger.info("No search results found")
-    else:
+    if not result["success"]:
         response_text = f"Search error: {result['error']}\n"
-        if result["output"]:
-            response_text += f"Output: {result['output']}"
+        response_text += f"Output: {result['output']}" if result["output"] else ""
+        return [TextContent(type="text", text=response_text)]
+
+    response_text = f"Hoogle search results (query: '{query}'):\n\n"
+
+    if result["output"]:
+        response_text += result["output"]
+        logger.debug(f"Search returned {len(result['output'].splitlines())} lines")
+    else:
+        response_text += "No search results found."
+        logger.info("No search results found")
 
     return [TextContent(type="text", text=response_text)]
 
@@ -163,18 +164,19 @@ async def handle_hoogle_info(
 
     result = await hoogle_client.get_info(name_param)
 
-    if result["success"]:
-        response_text = f"Detailed information for '{name_param}':\n\n"
-        if result["output"]:
-            response_text += result["output"]
-            logger.debug(f"Info returned {len(result['output'].splitlines())} lines")
-        else:
-            response_text += "No information found."
-            logger.info("No information found")
-    else:
+    if not result["success"]:
         response_text = f"Information retrieval error: {result['error']}\n"
-        if result["output"]:
-            response_text += f"Output: {result['output']}"
+        response_text += f"Output: {result['output']}" if result["output"] else ""
+        return [TextContent(type="text", text=response_text)]
+
+    response_text = f"Detailed information for '{name_param}':\n\n"
+
+    if result["output"]:
+        response_text += result["output"]
+        logger.debug(f"Info returned {len(result['output'].splitlines())} lines")
+    else:
+        response_text += "No information found."
+        logger.info("No information found")
 
     return [TextContent(type="text", text=response_text)]
 
