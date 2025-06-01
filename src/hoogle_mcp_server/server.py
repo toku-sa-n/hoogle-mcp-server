@@ -63,11 +63,6 @@ def get_version() -> str:
         return "(no version info)"
 
 
-def get_hoogle_path() -> str:
-    """Get the hoogle path, raising an error if not initialized."""
-    return hoogle_path.get()
-
-
 @server.list_tools()
 async def handle_list_tools() -> list[Tool]:
     """List available tools."""
