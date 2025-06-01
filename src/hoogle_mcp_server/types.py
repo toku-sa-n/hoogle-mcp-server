@@ -32,5 +32,18 @@ class CommandResult(TypedDict):
     return_code: Optional[int]
 
 
+class SearchArgs(TypedDict, total=False):
+    """Arguments for hoogle_search tool."""
+
+    query: str
+    max_results: int
+
+
+class GetInfoArgs(TypedDict):
+    """Arguments for hoogle_info tool."""
+
+    name: str
+
+
 ToolResponse = list[TextContent]
 ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]

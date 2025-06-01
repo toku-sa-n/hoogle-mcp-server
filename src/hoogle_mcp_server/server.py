@@ -22,14 +22,14 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
 
 from .hoogle_client import HoogleClient
-from .types import LogLevel, ToolHandler, ToolResponse
+from .types import GetInfoArgs, LogLevel, SearchArgs, ToolResponse
 
 MAX_QUERY_LENGTH = 500
 
@@ -113,7 +113,7 @@ async def handle_list_tools() -> list[Tool]:
 
 
 async def handle_hoogle_search(
-    arguments: Dict[str, Any],
+    arguments: SearchArgs,
 ) -> ToolResponse:
     """Handle hoogle_search tool calls."""
     if hoogle_client is None:
@@ -148,7 +148,7 @@ async def handle_hoogle_search(
 
 
 async def handle_hoogle_info(
-    arguments: Dict[str, Any],
+    arguments: GetInfoArgs,
 ) -> ToolResponse:
     """Handle hoogle_info tool calls."""
     if hoogle_client is None:
@@ -194,19 +194,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
     if arguments is None:
         arguments = {}
 
-    tool_handlers: Dict[str, ToolHandler] = {
-        "hoogle_search": handle_hoogle_search,
-        "hoogle_info": handle_hoogle_info,
-    }
-
-    handler = tool_handlers.get(name)
-    if not handler:
-        logger.error(f"Unknown tool requested: {name}")
-        return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
-
     try:
         logger.debug(f"Executing tool {name} with arguments: {arguments}")
-        result = await handler(arguments)
+
+        if name == "hoogle_search":
+            result = await handle_hoogle_search(cast(SearchArgs, arguments))
+        elif name == "hoogle_info":
+            result = await handle_hoogle_info(cast(GetInfoArgs, arguments))
+        else:
+            logger.error(f"Unknown tool requested: {name}")
+            return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
+
         logger.info(f"Tool {name} executed successfully")
         return result
     except Exception as e:

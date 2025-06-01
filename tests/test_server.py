@@ -12,6 +12,7 @@ from hoogle_mcp_server.server import (
     handle_hoogle_info,
     handle_hoogle_search,
 )
+from hoogle_mcp_server.types import GetInfoArgs
 import hoogle_mcp_server.server as server_module
 
 
@@ -239,7 +240,9 @@ class TestHandleHoogleInfo:
     @pytest.mark.asyncio
     async def test_missing_name(self) -> None:
         """Test handle_hoogle_info with missing name parameter."""
-        result = await handle_hoogle_info({})
+        from typing import cast
+
+        result = await handle_hoogle_info(cast(GetInfoArgs, {}))
 
         assert len(result) == 1
         assert result[0].type == "text"
