@@ -16,30 +16,43 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Awaitable, Callable, Dict, Literal, Optional, TypedDict
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Literal,
+    Optional,
+    Annotated,
+)
 
 from mcp.types import TextContent
+from pydantic import BaseModel, Field
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
-class CommandResult(TypedDict):
+class CommandResult(BaseModel):
     """Result of executing a hoogle command."""
 
     success: bool
     output: str
-    error: Optional[str]
-    return_code: Optional[int]
+    error: Optional[str] = None
+    return_code: Optional[int] = None
 
 
-class SearchArgs(TypedDict, total=False):
+class SearchArgs(BaseModel):
     """Arguments for hoogle_search tool."""
 
     query: str
-    max_results: int
+    max_results: Optional[
+        Annotated[
+            int, Field(ge=1, le=100, description="Maximum number of results (1-100)")
+        ]
+    ] = None
 
 
-class GetInfoArgs(TypedDict):
+class GetInfoArgs(BaseModel):
     """Arguments for hoogle_info tool."""
 
     name: str

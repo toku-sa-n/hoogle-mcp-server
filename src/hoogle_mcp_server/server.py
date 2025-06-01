@@ -22,7 +22,7 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
@@ -119,8 +119,8 @@ async def handle_hoogle_search(
     if hoogle_client is None:
         return [TextContent(type="text", text="Error: Hoogle client not initialized")]
 
-    query = arguments.get("query", "")
-    max_results = arguments.get("max_results", 10)
+    query = arguments.query
+    max_results = arguments.max_results or 10
 
     logger.info(f"Handling hoogle_search: query='{query}', max_results={max_results}")
 
@@ -130,16 +130,16 @@ async def handle_hoogle_search(
 
     result = await hoogle_client.search(arguments)
 
-    if not result["success"]:
-        response_text = f"Search error: {result['error']}\n"
-        response_text += f"Output: {result['output']}" if result["output"] else ""
+    if not result.success:
+        response_text = f"Search error: {result.error}\n"
+        response_text += f"Output: {result.output}" if result.output else ""
         return [TextContent(type="text", text=response_text)]
 
     response_text = f"Hoogle search results (query: '{query}'):\n\n"
 
-    if result["output"]:
-        response_text += result["output"]
-        logger.debug(f"Search returned {len(result['output'].splitlines())} lines")
+    if result.output:
+        response_text += result.output
+        logger.debug(f"Search returned {len(result.output.splitlines())} lines")
     else:
         response_text += "No search results found."
         logger.info("No search results found")
@@ -154,7 +154,7 @@ async def handle_hoogle_info(
     if hoogle_client is None:
         return [TextContent(type="text", text="Error: Hoogle client not initialized")]
 
-    name_param = arguments.get("name", "")
+    name_param = arguments.name
 
     logger.info(f"Handling hoogle_info: name='{name_param}'")
 
@@ -168,16 +168,16 @@ async def handle_hoogle_info(
 
     result = await hoogle_client.get_info(arguments)
 
-    if not result["success"]:
-        response_text = f"Information retrieval error: {result['error']}\n"
-        response_text += f"Output: {result['output']}" if result["output"] else ""
+    if not result.success:
+        response_text = f"Information retrieval error: {result.error}\n"
+        response_text += f"Output: {result.output}" if result.output else ""
         return [TextContent(type="text", text=response_text)]
 
     response_text = f"Detailed information for '{name_param}':\n\n"
 
-    if result["output"]:
-        response_text += result["output"]
-        logger.debug(f"Info returned {len(result['output'].splitlines())} lines")
+    if result.output:
+        response_text += result.output
+        logger.debug(f"Info returned {len(result.output.splitlines())} lines")
     else:
         response_text += "No information found."
         logger.info("No information found")
@@ -198,9 +198,11 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
         logger.debug(f"Executing tool {name} with arguments: {arguments}")
 
         if name == "hoogle_search":
-            result = await handle_hoogle_search(cast(SearchArgs, arguments))
+            search_args = SearchArgs(**arguments)
+            result = await handle_hoogle_search(search_args)
         elif name == "hoogle_info":
-            result = await handle_hoogle_info(cast(GetInfoArgs, arguments))
+            info_args = GetInfoArgs(**arguments)
+            result = await handle_hoogle_info(info_args)
         else:
             logger.error(f"Unknown tool requested: {name}")
             return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]

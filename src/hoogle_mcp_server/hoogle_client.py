@@ -52,27 +52,27 @@ class HoogleClient:
                 self.logger.error(
                     "Process did not complete properly (returncode is None)"
                 )
-                return {
-                    "success": False,
-                    "error": "Process did not complete properly (returncode is None)",
-                    "output": stdout.decode("utf-8") if stdout else "",
-                    "return_code": None,
-                }
+                return CommandResult(
+                    success=False,
+                    error="Process did not complete properly (returncode is None)",
+                    output=stdout.decode("utf-8") if stdout else "",
+                    return_code=None,
+                )
 
             self.logger.debug(
                 f"Process completed with return code: {process.returncode}"
             )
 
-            return {
-                "success": process.returncode == 0,
-                "output": stdout.decode("utf-8") if stdout else "",
-                "error": (
+            return CommandResult(
+                success=process.returncode == 0,
+                output=stdout.decode("utf-8") if stdout else "",
+                error=(
                     stderr.decode("utf-8")
                     if stderr and process.returncode != 0
                     else None
                 ),
-                "return_code": process.returncode,
-            }
+                return_code=process.returncode,
+            )
 
         except asyncio.TimeoutError:
             self.logger.warning(
@@ -86,14 +86,12 @@ class HoogleClient:
                 self.logger.debug("Process already terminated")
                 pass
 
-            return {
-                "success": False,
-                "error": (
-                    f"Command execution timed out ({self.timeout_seconds} seconds)"
-                ),
-                "output": "",
-                "return_code": None,
-            }
+            return CommandResult(
+                success=False,
+                error=(f"Command execution timed out ({self.timeout_seconds} seconds)"),
+                output="",
+                return_code=None,
+            )
 
     async def run_command(self, args: List[str]) -> CommandResult:
         """Execute hoogle command asynchronously and return the result."""
@@ -111,27 +109,27 @@ class HoogleClient:
 
             result = await self._execute_process_with_timeout(process)
 
-            if result["success"]:
+            if result.success:
                 self.logger.info("Hoogle command executed successfully")
-                self.logger.debug(f"Output length: {len(result['output'])} characters")
+                self.logger.debug(f"Output length: {len(result.output)} characters")
             else:
-                self.logger.error(f"Hoogle command failed: {result['error']}")
+                self.logger.error(f"Hoogle command failed: {result.error}")
 
             return result
 
         except Exception as e:
             self.logger.error(f"Command execution error: {str(e)}")
-            return {
-                "success": False,
-                "error": f"Command execution error: {str(e)}",
-                "output": "",
-                "return_code": None,
-            }
+            return CommandResult(
+                success=False,
+                error=f"Command execution error: {str(e)}",
+                output="",
+                return_code=None,
+            )
 
     async def search(self, search_args: SearchArgs) -> CommandResult:
         """Search for functions and types using hoogle."""
-        query = search_args.get("query", "")
-        max_results = search_args.get("max_results", 10)
+        query = search_args.query
+        max_results = search_args.max_results or 10
 
         self.logger.info(
             f"Searching hoogle: query='{query}', max_results={max_results}"
@@ -146,7 +144,7 @@ class HoogleClient:
 
     async def get_info(self, info_args: GetInfoArgs) -> CommandResult:
         """Get detailed information about a specific function or type."""
-        name = info_args.get("name", "")
+        name = info_args.name
 
         self.logger.info(f"Getting hoogle info: name='{name}'")
 
