@@ -71,7 +71,7 @@ jobs:
       - name: Run type checking
         run: hatch run type-check:run --all
 
-  format:
+  style:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -85,10 +85,10 @@ jobs:
       - name: Install Hatch
         run: pip install hatch
 
-      - name: Run format
-        run: hatch run format:run
+      - name: Run style
+        run: hatch run style:run
 
-  format-check:
+  prettier:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -101,7 +101,7 @@ jobs:
       - name: Install Prettier
         run: npm install -g prettier
 
-      - name: Check format with Prettier
+      - name: Check style with Prettier
         run: prettier --check .
 
   markdown-lint:
