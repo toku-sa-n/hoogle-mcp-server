@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hoogle-mcp-server"
+description = "MCP server for accessing Hoogle search functionality"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = ["mcp", "hoogle", "haskell"]
+authors = [{ name = "toku-sa-n", email = "tokusan441@gmail.com" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Framework :: AsyncIO",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = ["mcp >= 1.9.2, < 2.0.0", "pydantic >= 2.11.5, < 3.0.0"]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/toku-sa-n/hoogle-mcp-server"
+Repository = "https://github.com/toku-sa-n/hoogle-mcp-server"
+
+[project.scripts]
+hoogle-mcp-server = "hoogle_mcp_server.server:cli_main"
+
+[tool.hatch.version]
+path = "src/hoogle_mcp_server/__init__.py"
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"

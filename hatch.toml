@@ -1,0 +1,36 @@
+[envs.style]
+detached = true
+dependencies = ["ruff"]
+
+[envs.style.scripts]
+check = ["ruff format --check .", "ruff check ."]
+fix = ["ruff format .", "ruff check --fix ."]
+
+[envs.type]
+detached = true
+dependencies = [
+    "mypy",
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "pytest >= 8.0",
+    "pytest-asyncio >= 1.0.0",
+]
+
+[[envs.type.matrix]]
+python = ["3.10", "3.11", "3.12", "3.13"]
+
+[envs.type.scripts]
+check = "mypy ."
+
+[envs.security]
+detached = true
+dependencies = ["pip-audit", "bandit"]
+
+[envs.security.scripts]
+check = ["pip-audit", "bandit -c bandit.yaml -r ."]
+
+[envs.hatch-test]
+extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
+
+[[envs.hatch-test.matrix]]
+python = ["3.10", "3.11", "3.12", "3.13"]
