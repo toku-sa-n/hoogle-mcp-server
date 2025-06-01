@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "hoogle-mcp-server"
 description = "MCP server for accessing Hoogle search functionality"
 readme = "README.md"
-dynamic = ["version"]
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 keywords = ["mcp", "hoogle", "haskell"]
@@ -25,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = ["mcp>=1.0.0", "pydantic>=2.0.0"]
+dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://github.com/toku-sa-n/hoogle-mcp-server"
