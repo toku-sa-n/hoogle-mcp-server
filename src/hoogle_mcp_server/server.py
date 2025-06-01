@@ -196,22 +196,20 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
     }
 
     handler = tool_handlers.get(name)
-    if handler:
-        try:
-            logger.debug(f"Executing tool {name} with arguments: {arguments}")
-            result = await handler(arguments)
-            logger.info(f"Tool {name} executed successfully")
-            return result
-        except Exception as e:
-            logger.error(f"Error executing tool {name}: {str(e)}")
-            return [
-                TextContent(
-                    type="text", text=f"Error executing tool '{name}': {str(e)}"
-                )
-            ]
-    else:
+    if not handler:
         logger.error(f"Unknown tool requested: {name}")
         return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
+
+    try:
+        logger.debug(f"Executing tool {name} with arguments: {arguments}")
+        result = await handler(arguments)
+        logger.info(f"Tool {name} executed successfully")
+        return result
+    except Exception as e:
+        logger.error(f"Error executing tool {name}: {str(e)}")
+        return [
+            TextContent(type="text", text=f"Error executing tool '{name}': {str(e)}")
+        ]
 
 
 async def main(log_level: LogLevel = "INFO") -> None:
