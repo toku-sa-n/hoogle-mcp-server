@@ -175,6 +175,28 @@ class TestHandleCallTool:
         assert "Validation error for hoogle_info" in result[0].text
         assert "name" in result[0].text
 
+    @pytest.mark.asyncio
+    async def test_hoogle_search_validation_error_query_too_long(self) -> None:
+        """Test hoogle_search with query exceeding maximum length."""
+        too_long_query = "a" * (MAX_QUERY_LENGTH + 1)
+        result = await handle_call_tool("hoogle_search", {"query": too_long_query})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Validation error for hoogle_search" in result[0].text
+        assert "query" in result[0].text
+
+    @pytest.mark.asyncio
+    async def test_hoogle_info_validation_error_name_too_long(self) -> None:
+        """Test hoogle_info with name exceeding maximum length."""
+        too_long_name = "a" * (MAX_QUERY_LENGTH + 1)
+        result = await handle_call_tool("hoogle_info", {"name": too_long_name})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Validation error for hoogle_info" in result[0].text
+        assert "name" in result[0].text
+
 
 class TestHandleHoogleSearch:
     """Test cases for handle_hoogle_search function."""

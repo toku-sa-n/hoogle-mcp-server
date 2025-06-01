@@ -23,13 +23,14 @@ from typing import (
     Dict,
     Literal,
     Optional,
-    Annotated,
 )
 
 from mcp.types import TextContent
 from pydantic import BaseModel, Field
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+MAX_QUERY_LENGTH = 500
 
 
 class CommandResult(BaseModel):
@@ -44,18 +45,22 @@ class CommandResult(BaseModel):
 class SearchArgs(BaseModel):
     """Arguments for hoogle_search tool."""
 
-    query: str
-    max_results: Optional[
-        Annotated[
-            int, Field(ge=1, le=100, description="Maximum number of results (1-100)")
-        ]
-    ] = None
+    query: str = Field(
+        max_length=MAX_QUERY_LENGTH,
+        description="Search query (function name, type signature, or keywords)",
+    )
+    max_results: Optional[int] = Field(
+        default=None, ge=1, le=100, description="Maximum number of results (1-100)"
+    )
 
 
 class GetInfoArgs(BaseModel):
     """Arguments for hoogle_info tool."""
 
-    name: str
+    name: str = Field(
+        max_length=MAX_QUERY_LENGTH,
+        description="Function name or type name to get detailed information for",
+    )
 
 
 ToolResponse = list[TextContent]

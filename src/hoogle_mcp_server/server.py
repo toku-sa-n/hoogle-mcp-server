@@ -30,9 +30,7 @@ from mcp.types import TextContent, Tool
 from pydantic import ValidationError
 
 from .hoogle_client import HoogleClient
-from .types import GetInfoArgs, LogLevel, SearchArgs, ToolResponse
-
-MAX_QUERY_LENGTH = 500
+from .types import GetInfoArgs, LogLevel, SearchArgs, ToolResponse, MAX_QUERY_LENGTH
 
 server: Server[str] = Server("hoogle-mcp-server")
 hoogle_client: HoogleClient | None = None
