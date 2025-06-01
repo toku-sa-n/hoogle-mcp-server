@@ -89,7 +89,6 @@ def parse_cli_arguments() -> LogLevel:
 
     args = parser.parse_args()
 
-    # If verbose is specified, override log level to DEBUG
     return "DEBUG" if args.verbose else args.log_level
 
 
