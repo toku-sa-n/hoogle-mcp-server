@@ -222,7 +222,6 @@ async def main(log_level: LogLevel = "INFO") -> None:
     setup_logging(log_level)
     logger.info("Starting Hoogle MCP Server")
 
-    # Check if hoogle is available before starting the server
     found_hoogle_path = shutil.which("hoogle")
     if not found_hoogle_path:
         error_msg = (
