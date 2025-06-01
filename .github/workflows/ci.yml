@@ -48,7 +48,22 @@ jobs:
           cabal install hoogle --install-method=copy
           echo "$HOME/.cabal/bin" >> $GITHUB_PATH
 
+      - name: Get Hoogle version
+        id: hoogle-version
+        run: echo "version=$(hoogle --version | head -n1)" >> $GITHUB_OUTPUT
+
+      - name: Cache Hoogle database
+        id: cache-hoogle-db
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.hoogle
+          key: ${{ runner.os }}-hoogle-db-ghc-${{ steps.setup-haskell.outputs.ghc-version }}-${{ steps.hoogle-version.outputs.version }}
+          restore-keys: |
+            ${{ runner.os }}-hoogle-db-ghc-${{ steps.setup-haskell.outputs.ghc-version }}-
+            ${{ runner.os }}-hoogle-db-
+
       - name: Generate Hoogle database
+        if: steps.cache-hoogle-db.outputs.cache-hit != 'true'
         run: hoogle generate
 
       - name: Run tests
