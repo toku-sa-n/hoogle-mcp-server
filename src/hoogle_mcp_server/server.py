@@ -22,20 +22,21 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
 
+from .hoogle_client import HoogleClient
 from .hoogle_path import HooglePath
-from .types import CommandResult, LogLevel, ToolHandler, ToolResponse
+from .types import LogLevel, ToolHandler, ToolResponse
 
-HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
 
 server: Server[str] = Server("hoogle-mcp-server")
 hoogle_path = HooglePath()
+hoogle_client = HoogleClient()
 logger = logging.getLogger(__name__)
 
 
@@ -65,95 +66,6 @@ def get_version() -> str:
 def get_hoogle_path() -> str:
     """Get the hoogle path, raising an error if not initialized."""
     return hoogle_path.get()
-
-
-async def _execute_process_with_timeout(
-    process: asyncio.subprocess.Process,
-) -> CommandResult:
-    """Execute process with timeout handling."""
-    logger.debug(f"Executing process with PID: {process.pid}")
-
-    try:
-        stdout, stderr = await asyncio.wait_for(
-            process.communicate(), timeout=HOOGLE_COMMAND_TIMEOUT_SECONDS
-        )
-
-        # Handle case where returncode is None
-        if process.returncode is None:
-            logger.error("Process did not complete properly (returncode is None)")
-            return {
-                "success": False,
-                "error": "Process did not complete properly (returncode is None)",
-                "output": stdout.decode("utf-8") if stdout else "",
-                "return_code": None,
-            }
-
-        logger.debug(f"Process completed with return code: {process.returncode}")
-
-        return {
-            "success": process.returncode == 0,
-            "output": stdout.decode("utf-8") if stdout else "",
-            "error": (
-                stderr.decode("utf-8") if stderr and process.returncode != 0 else None
-            ),
-            "return_code": process.returncode,
-        }
-
-    except asyncio.TimeoutError:
-        logger.warning(
-            f"Process timed out after {HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds"
-        )
-        try:
-            process.kill()
-            await process.wait()
-            logger.debug("Process killed successfully")
-        except ProcessLookupError:
-            logger.debug("Process already terminated")
-            pass  # Process already terminated
-
-        return {
-            "success": False,
-            "error": (
-                f"Command execution timed out "
-                f"({HOOGLE_COMMAND_TIMEOUT_SECONDS} seconds)"
-            ),
-            "output": "",
-            "return_code": None,
-        }
-
-
-async def run_hoogle_command(args: List[str]) -> CommandResult:
-    """Execute hoogle command asynchronously and return the result."""
-    logger.info(f"Running hoogle command with args: {args}")
-
-    try:
-        cmd = [get_hoogle_path()] + args
-        logger.debug(f"Full command: {' '.join(cmd)}")
-
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-
-        result = await _execute_process_with_timeout(process)
-
-        if result["success"]:
-            logger.info("Hoogle command executed successfully")
-            logger.debug(f"Output length: {len(result['output'])} characters")
-        else:
-            logger.error(f"Hoogle command failed: {result['error']}")
-
-        return result
-
-    except Exception as e:
-        logger.error(f"Command execution error: {str(e)}")
-        return {
-            "success": False,
-            "error": f"Command execution error: {str(e)}",
-            "output": "",
-            "return_code": None,
-        }
 
 
 @server.list_tools()
@@ -220,12 +132,7 @@ async def handle_hoogle_search(
         logger.warning("Search query not specified")
         return [TextContent(type="text", text="Error: Search query not specified")]
 
-    args = ["search"]
-    args.extend(["--count", str(max_results)])
-    args.append("--")
-    args.append(query)
-
-    result = await run_hoogle_command(args)
+    result = await hoogle_client.search(query, max_results)
 
     if result["success"]:
         response_text = f"Hoogle search results (query: '{query}'):\n\n"
@@ -259,8 +166,7 @@ async def handle_hoogle_info(
             )
         ]
 
-    args = ["search", "-i", "--", name_param]
-    result = await run_hoogle_command(args)
+    result = await hoogle_client.get_info(name_param)
 
     if result["success"]:
         response_text = f"Detailed information for '{name_param}':\n\n"
