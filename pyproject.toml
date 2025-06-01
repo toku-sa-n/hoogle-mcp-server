@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-dependencies = ["mcp>=1.0.0", "pydantic>=2.0.0"]
+dependencies = ["mcp >= 1.9.2, < 2.0.0", "pydantic >= 2.11.5, < 3.0.0"]
 dynamic = ["version"]
 
 [project.urls]
