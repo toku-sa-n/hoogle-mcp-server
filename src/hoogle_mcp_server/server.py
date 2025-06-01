@@ -52,11 +52,7 @@ async def main(log_level: LogLevel = "INFO") -> None:
 
 
 def parse_cli_arguments() -> LogLevel:
-    """Parse command line arguments and return the log level.
-
-    When both --verbose and --log-level are specified, --verbose takes precedence
-    and the log level will be set to DEBUG regardless of the --log-level value.
-    """
+    """Parse command line arguments and return the log level."""
     parser = argparse.ArgumentParser(
         prog="hoogle-mcp-server",
         description="MCP server for accessing Hoogle search functionality",
