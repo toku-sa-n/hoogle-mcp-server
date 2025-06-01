@@ -138,7 +138,7 @@ class HoogleClient:
         )
 
         args = ["search"]
-        args.extend(["--count", str(max_results)])
+        args.append(f"--count={max_results}")
         args.append("--")
         args.append(query)
 
