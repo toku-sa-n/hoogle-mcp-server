@@ -22,7 +22,7 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Optional
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
@@ -33,7 +33,7 @@ from .types import CommandResult, LogLevel, ToolHandler, ToolResponse
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
 
-server: Server = Server("hoogle-mcp-server")
+server: Server[str] = Server("hoogle-mcp-server")
 hoogle_path: Optional[str] = None
 logger = logging.getLogger(__name__)
 
