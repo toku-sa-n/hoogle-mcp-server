@@ -84,7 +84,7 @@ jobs:
         run: pip install hatch
 
       - name: Run type checking
-        run: hatch run type-check:run --all
+        run: hatch run type:check --all
 
   style:
     runs-on: ubuntu-latest
@@ -142,4 +142,4 @@ jobs:
         run: pip install hatch
 
       - name: Run security checks
-        run: hatch run security:run
+        run: hatch run security:check

@@ -6,7 +6,7 @@ dependencies = ["ruff"]
 check = ["ruff format --check .", "ruff check ."]
 fix = ["ruff format .", "ruff check --fix ."]
 
-[envs.type-check]
+[envs.type]
 detached = true
 dependencies = [
     "mypy",
@@ -16,19 +16,18 @@ dependencies = [
     "pytest-asyncio >= 1.0.0",
 ]
 
-[[envs.type-check.matrix]]
+[[envs.type.matrix]]
 python = ["3.10", "3.11", "3.12", "3.13"]
 
-[envs.type-check.scripts]
-run = "mypy ."
+[envs.type.scripts]
+check = "mypy ."
 
 [envs.security]
 detached = true
 dependencies = ["pip-audit", "bandit"]
 
 [envs.security.scripts]
-# Bandit's `exclude` option does not seem to work: https://github.com/PyCQA/bandit/issues/693
-run = ["pip-audit", "bandit -c bandit.yaml -r ."]
+check = ["pip-audit", "bandit -c bandit.yaml -r ."]
 
 [envs.hatch-test]
 extra-dependencies = ["pytest >= 8.0", "pytest-asyncio >= 1.0.0"]
