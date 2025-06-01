@@ -18,31 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import asyncio
-import logging
 import shutil
 import sys
 from importlib import metadata
 
 from .hoogle_client import HoogleClient
 from .hoogle_mcp_server import HoogleMCPServer
+from .logger import get_logger, setup_logging
 from .types import LogLevel
 
-logger = logging.getLogger(__name__)
-
-
-def setup_logging(log_level: LogLevel = "INFO") -> None:
-    """Setup logging configuration with specified log level."""
-
-    numeric_level = getattr(logging, log_level.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError(f"Invalid log level: {log_level}")
-
-    logging.basicConfig(
-        level=numeric_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    logger.info("Logging initialized with level: %s", log_level.upper())
+logger = get_logger(__name__)
 
 
 def get_version() -> str:
@@ -55,6 +40,8 @@ def get_version() -> str:
 
 async def main(log_level: LogLevel = "INFO") -> None:
     """Main server function."""
+    setup_logging(log_level)
+
     found_hoogle_path = shutil.which("hoogle")
     if not found_hoogle_path:
         error_msg = (
@@ -68,7 +55,8 @@ async def main(log_level: LogLevel = "INFO") -> None:
     hoogle_client = HoogleClient(found_hoogle_path)
     logger.info(f"Hoogle found at: {found_hoogle_path}")
 
-    server = HoogleMCPServer(hoogle_client)
+    server_logger = get_logger("hoogle_mcp_server.server")
+    server = HoogleMCPServer(hoogle_client, server_logger)
     await server.run(log_level)
 
 

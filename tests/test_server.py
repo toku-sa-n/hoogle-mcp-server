@@ -21,9 +21,15 @@ def mock_hoogle_client() -> Mock:
 
 
 @pytest.fixture
-def hoogle_server(mock_hoogle_client: Mock) -> HoogleMCPServer:
-    """Create a HoogleMCPServer instance with mock client for testing."""
-    return HoogleMCPServer(mock_hoogle_client)
+def mock_logger() -> Mock:
+    """Create a mock logger for testing."""
+    return Mock()
+
+
+@pytest.fixture
+def hoogle_server(mock_hoogle_client: Mock, mock_logger: Mock) -> HoogleMCPServer:
+    """Create a HoogleMCPServer instance with mock client and logger for testing."""
+    return HoogleMCPServer(mock_hoogle_client, mock_logger)
 
 
 class TestHoogleClientIntegration:
