@@ -50,7 +50,7 @@ jobs:
 
       - name: Get Hoogle version
         id: hoogle-version
-        run: echo "version=$(hoogle --version | head -n1)" >> $GITHUB_OUTPUT
+        run: echo "version=$(hoogle --numeric-version)" >> $GITHUB_OUTPUT
 
       - name: Cache Hoogle database
         id: cache-hoogle-db
