@@ -255,8 +255,8 @@ async def main(log_level: LogLevel = "INFO") -> None:
         )
 
 
-def cli_main() -> None:
-    """CLI entry point that runs the async main function."""
+def parse_cli_arguments() -> LogLevel:
+    """Parse command line arguments and return the log level."""
     parser = argparse.ArgumentParser(
         prog="hoogle-mcp-server",
         description="MCP server for accessing Hoogle search functionality",
@@ -287,7 +287,12 @@ def cli_main() -> None:
     args = parser.parse_args()
 
     # If verbose is specified, override log level to DEBUG
-    log_level: LogLevel = "DEBUG" if args.verbose else args.log_level
+    return "DEBUG" if args.verbose else args.log_level
+
+
+def cli_main() -> None:
+    """CLI entry point that runs the async main function."""
+    log_level = parse_cli_arguments()
 
     try:
         asyncio.run(main(log_level=log_level))
