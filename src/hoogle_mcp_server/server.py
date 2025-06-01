@@ -277,10 +277,20 @@ def cli_main() -> None:
         help="Set the logging level (default: INFO)",
     )
 
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose logging (equivalent to --log-level DEBUG)",
+    )
+
     args = parser.parse_args()
 
+    # If verbose is specified, override log level to DEBUG
+    log_level: LogLevel = "DEBUG" if args.verbose else args.log_level
+
     try:
-        asyncio.run(main(log_level=args.log_level))
+        asyncio.run(main(log_level=log_level))
     except KeyboardInterrupt:
         logger.info("Server shutdown requested by user")
         print("\nServer shutdown.", file=sys.stderr)
