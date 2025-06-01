@@ -16,10 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Awaitable, Callable, Dict, Literal, Optional
-from typing_extensions import TypedDict
+from typing import Any, Awaitable, Callable, Dict, Literal, Optional, TypedDict
 
-from mcp.types import EmbeddedResource, ImageContent, TextContent
+from mcp.types import TextContent
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -33,5 +32,5 @@ class CommandResult(TypedDict):
     return_code: Optional[int]
 
 
-ToolResponse = list[TextContent | ImageContent | EmbeddedResource]
+ToolResponse = list[TextContent]
 ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
