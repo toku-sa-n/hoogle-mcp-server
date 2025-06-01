@@ -20,21 +20,21 @@ import asyncio
 import logging
 from typing import List
 
-from .hoogle_path import HooglePath
 from .types import CommandResult
 
 
 class HoogleClient:
     """Client for executing hoogle commands."""
 
-    def __init__(self, timeout_seconds: int = 5) -> None:
+    def __init__(self, hoogle_path: str, timeout_seconds: int = 5) -> None:
         """Initialize the hoogle client.
 
         Args:
+            hoogle_path: Path to the hoogle executable
             timeout_seconds: Command execution timeout in seconds
         """
+        self.hoogle_path = hoogle_path
         self.timeout_seconds = timeout_seconds
-        self.hoogle_path = HooglePath()
         self.logger = logging.getLogger(__name__)
 
     async def _execute_process_with_timeout(
@@ -100,7 +100,7 @@ class HoogleClient:
         self.logger.info(f"Running hoogle command with args: {args}")
 
         try:
-            cmd = [self.hoogle_path.get()] + args
+            cmd = [self.hoogle_path] + args
             self.logger.debug(f"Full command: {' '.join(cmd)}")
 
             process = await asyncio.create_subprocess_exec(

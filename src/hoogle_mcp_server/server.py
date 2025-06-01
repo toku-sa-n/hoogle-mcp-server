@@ -29,14 +29,12 @@ from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
 
 from .hoogle_client import HoogleClient
-from .hoogle_path import HooglePath
 from .types import LogLevel, ToolHandler, ToolResponse
 
 MAX_QUERY_LENGTH = 500
 
 server: Server[str] = Server("hoogle-mcp-server")
-hoogle_path = HooglePath()
-hoogle_client = HoogleClient()
+hoogle_client: HoogleClient | None = None
 logger = logging.getLogger(__name__)
 
 
@@ -118,6 +116,9 @@ async def handle_hoogle_search(
     arguments: Dict[str, Any],
 ) -> ToolResponse:
     """Handle hoogle_search tool calls."""
+    if hoogle_client is None:
+        return [TextContent(type="text", text="Error: Hoogle client not initialized")]
+
     query = arguments.get("query", "")
     max_results = arguments.get("max_results", 10)
 
@@ -150,6 +151,9 @@ async def handle_hoogle_info(
     arguments: Dict[str, Any],
 ) -> ToolResponse:
     """Handle hoogle_info tool calls."""
+    if hoogle_client is None:
+        return [TextContent(type="text", text="Error: Hoogle client not initialized")]
+
     name_param = arguments.get("name", "")
 
     logger.info(f"Handling hoogle_info: name='{name_param}'")
@@ -214,6 +218,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
 
 async def main(log_level: LogLevel = "INFO") -> None:
     """Main server function."""
+    global hoogle_client
 
     setup_logging(log_level)
     logger.info("Starting Hoogle MCP Server")
@@ -228,7 +233,7 @@ async def main(log_level: LogLevel = "INFO") -> None:
         print(error_msg, file=sys.stderr)
         return
 
-    hoogle_path.init(found_hoogle_path)
+    hoogle_client = HoogleClient(found_hoogle_path)
     logger.info(f"Hoogle found at: {found_hoogle_path}")
 
     from mcp.server.stdio import stdio_server

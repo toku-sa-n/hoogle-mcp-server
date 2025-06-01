@@ -1,26 +1,36 @@
 """Test cases for Hoogle MCP Server."""
 
-from typing import Any
-from unittest.mock import patch
+from typing import Generator
+from unittest.mock import Mock
 
 import pytest
 
+from hoogle_mcp_server.hoogle_client import HoogleClient
 from hoogle_mcp_server.server import (
     MAX_QUERY_LENGTH,
     handle_call_tool,
     handle_hoogle_info,
     handle_hoogle_search,
 )
+import hoogle_mcp_server.server as server_module
+
+
+@pytest.fixture
+def setup_hoogle_client() -> Generator[Mock, None, None]:
+    """Set up a mock hoogle client for testing."""
+    mock_client = Mock(spec=HoogleClient)
+    server_module.hoogle_client = mock_client
+    yield mock_client
+    server_module.hoogle_client = None
 
 
 class TestHoogleClientIntegration:
     """Test cases for HoogleClient integration."""
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_search_success(self, mock_search: Any) -> None:
+    async def test_search_success(self, setup_hoogle_client: Mock) -> None:
         """Test successful hoogle search through client."""
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": True,
             "output": "Data.List map :: (a -> b) -> [a] -> [b]\n",
             "error": None,
@@ -32,13 +42,12 @@ class TestHoogleClientIntegration:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
-        mock_search.assert_called_once_with("map", 10)
+        setup_hoogle_client.search.assert_called_once_with("map", 10)
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.get_info")
-    async def test_info_success(self, mock_get_info: Any) -> None:
+    async def test_info_success(self, setup_hoogle_client: Mock) -> None:
         """Test successful hoogle info through client."""
-        mock_get_info.return_value = {
+        setup_hoogle_client.get_info.return_value = {
             "success": True,
             "output": "Detailed information about map function\n",
             "error": None,
@@ -50,7 +59,7 @@ class TestHoogleClientIntegration:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Detailed information" in result[0].text
-        mock_get_info.assert_called_once_with("map")
+        setup_hoogle_client.get_info.assert_called_once_with("map")
 
 
 class TestHandleCallTool:
@@ -63,13 +72,12 @@ class TestHandleCallTool:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error: Search query not specified" in result[0].text
+        assert "Error: Hoogle client not initialized" in result[0].text
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_hoogle_search_success(self, mock_search: Any) -> None:
+    async def test_hoogle_search_success(self, setup_hoogle_client: Mock) -> None:
         """Test successful hoogle_search."""
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": True,
             "output": "Data.List map :: (a -> b) -> [a] -> [b]\n",
             "error": None,
@@ -81,7 +89,7 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
-        mock_search.assert_called_once_with("map", 10)
+        setup_hoogle_client.search.assert_called_once_with("map", 10)
 
     @pytest.mark.asyncio
     async def test_hoogle_info_missing_name(self) -> None:
@@ -90,13 +98,12 @@ class TestHandleCallTool:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error: Function name or type name not specified" in result[0].text
+        assert "Error: Hoogle client not initialized" in result[0].text
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.get_info")
-    async def test_hoogle_info_success(self, mock_get_info: Any) -> None:
+    async def test_hoogle_info_success(self, setup_hoogle_client: Mock) -> None:
         """Test successful hoogle_info."""
-        mock_get_info.return_value = {
+        setup_hoogle_client.get_info.return_value = {
             "success": True,
             "output": "Detailed information about map function\n",
             "error": None,
@@ -108,7 +115,7 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Detailed information" in result[0].text
-        mock_get_info.assert_called_once_with("map")
+        setup_hoogle_client.get_info.assert_called_once_with("map")
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self) -> None:
@@ -130,14 +137,13 @@ class TestHandleHoogleSearch:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error: Search query not specified" in result[0].text
+        assert "Error: Hoogle client not initialized" in result[0].text
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_query_at_max_length(self, mock_search: Any) -> None:
+    async def test_query_at_max_length(self, setup_hoogle_client: Mock) -> None:
         """Test handle_hoogle_search with query at maximum allowed length."""
         max_length_query = "a" * MAX_QUERY_LENGTH
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": True,
             "output": "Some search results\n",
             "error": None,
@@ -149,13 +155,12 @@ class TestHandleHoogleSearch:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Some search results" in result[0].text
-        mock_search.assert_called_once_with(max_length_query, 10)
+        setup_hoogle_client.search.assert_called_once_with(max_length_query, 10)
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_success(self, mock_search: Any) -> None:
+    async def test_success(self, setup_hoogle_client: Mock) -> None:
         """Test successful search."""
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": True,
             "output": "Data.List map :: (a -> b) -> [a] -> [b]\nPrelude filter :: (a -> Bool) -> [a] -> [a]\n",
             "error": None,
@@ -168,13 +173,12 @@ class TestHandleHoogleSearch:
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
         assert "Prelude filter" in result[0].text
-        mock_search.assert_called_once_with("map", 5)
+        setup_hoogle_client.search.assert_called_once_with("map", 5)
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_no_results(self, mock_search: Any) -> None:
+    async def test_no_results(self, setup_hoogle_client: Mock) -> None:
         """Test search with no results."""
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": True,
             "output": "",
             "error": None,
@@ -186,13 +190,12 @@ class TestHandleHoogleSearch:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "No search results found" in result[0].text
-        mock_search.assert_called_once_with("nonexistent_function", 10)
+        setup_hoogle_client.search.assert_called_once_with("nonexistent_function", 10)
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_error(self, mock_search: Any) -> None:
+    async def test_error(self, setup_hoogle_client: Mock) -> None:
         """Test search with error."""
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": False,
             "output": "",
             "error": "Invalid query format",
@@ -205,13 +208,12 @@ class TestHandleHoogleSearch:
         assert result[0].type == "text"
         assert "Search error" in result[0].text
         assert "Invalid query format" in result[0].text
-        mock_search.assert_called_once_with("invalid query", 10)
+        setup_hoogle_client.search.assert_called_once_with("invalid query", 10)
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.search")
-    async def test_multiple_results(self, mock_search: Any) -> None:
+    async def test_multiple_results(self, setup_hoogle_client: Mock) -> None:
         """Test search with multiple results."""
-        mock_search.return_value = {
+        setup_hoogle_client.search.return_value = {
             "success": True,
             "output": (
                 "Data.List map :: (a -> b) -> [a] -> [b]\n"
@@ -228,7 +230,7 @@ class TestHandleHoogleSearch:
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
         assert "Control.Monad mapM" in result[0].text
-        mock_search.assert_called_once_with("map", 20)
+        setup_hoogle_client.search.assert_called_once_with("map", 20)
 
 
 class TestHandleHoogleInfo:
@@ -241,14 +243,13 @@ class TestHandleHoogleInfo:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error: Function name or type name not specified" in result[0].text
+        assert "Error: Hoogle client not initialized" in result[0].text
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.get_info")
-    async def test_name_at_max_length(self, mock_get_info: Any) -> None:
+    async def test_name_at_max_length(self, setup_hoogle_client: Mock) -> None:
         """Test handle_hoogle_info with name at maximum allowed length."""
         max_length_name = "a" * MAX_QUERY_LENGTH
-        mock_get_info.return_value = {
+        setup_hoogle_client.get_info.return_value = {
             "success": True,
             "output": "Some detailed information\n",
             "error": None,
@@ -260,13 +261,12 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Some detailed information" in result[0].text
-        mock_get_info.assert_called_once_with(max_length_name)
+        setup_hoogle_client.get_info.assert_called_once_with(max_length_name)
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.get_info")
-    async def test_success(self, mock_get_info: Any) -> None:
+    async def test_success(self, setup_hoogle_client: Mock) -> None:
         """Test successful info retrieval."""
-        mock_get_info.return_value = {
+        setup_hoogle_client.get_info.return_value = {
             "success": True,
             "output": "module Prelude\nmap :: (a -> b) -> [a] -> [b]\nDetailed docs...\n",
             "error": None,
@@ -279,13 +279,12 @@ class TestHandleHoogleInfo:
         assert result[0].type == "text"
         assert "module Prelude" in result[0].text
         assert "Detailed docs" in result[0].text
-        mock_get_info.assert_called_once_with("map")
+        setup_hoogle_client.get_info.assert_called_once_with("map")
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.get_info")
-    async def test_no_info(self, mock_get_info: Any) -> None:
+    async def test_no_info(self, setup_hoogle_client: Mock) -> None:
         """Test info retrieval with no information found."""
-        mock_get_info.return_value = {
+        setup_hoogle_client.get_info.return_value = {
             "success": True,
             "output": "",
             "error": None,
@@ -297,13 +296,12 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "No information found" in result[0].text
-        mock_get_info.assert_called_once_with("nonexistent_function")
+        setup_hoogle_client.get_info.assert_called_once_with("nonexistent_function")
 
     @pytest.mark.asyncio
-    @patch("hoogle_mcp_server.server.hoogle_client.get_info")
-    async def test_error(self, mock_get_info: Any) -> None:
+    async def test_error(self, setup_hoogle_client: Mock) -> None:
         """Test info retrieval with error."""
-        mock_get_info.return_value = {
+        setup_hoogle_client.get_info.return_value = {
             "success": False,
             "output": "",
             "error": "Function not found",
@@ -316,4 +314,4 @@ class TestHandleHoogleInfo:
         assert result[0].type == "text"
         assert "Information retrieval error" in result[0].text
         assert "Function not found" in result[0].text
-        mock_get_info.assert_called_once_with("invalid_function")
+        setup_hoogle_client.get_info.assert_called_once_with("invalid_function")
