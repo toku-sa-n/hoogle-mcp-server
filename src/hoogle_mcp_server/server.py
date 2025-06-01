@@ -22,18 +22,11 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict
-
-from mcp.server import NotificationOptions, Server
-from mcp.server.models import InitializationOptions
-from mcp.types import TextContent, Tool
-from pydantic import ValidationError
 
 from .hoogle_client import HoogleClient
-from .types import GetInfoArgs, LogLevel, SearchArgs, ToolResponse, MAX_QUERY_LENGTH
+from .hoogle_mcp_server import HoogleMCPServer
+from .types import LogLevel
 
-server: Server[str] = Server("hoogle-mcp-server")
-hoogle_client: HoogleClient | None = None
 logger = logging.getLogger(__name__)
 
 
@@ -60,179 +53,8 @@ def get_version() -> str:
         return "(no version info)"
 
 
-@server.list_tools()
-async def handle_list_tools() -> list[Tool]:
-    """List available tools."""
-    return [
-        Tool(
-            name="hoogle_search",
-            description=(
-                "Search for function and type definitions using the "
-                "Haskell API search engine Hoogle"
-            ),
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": (
-                            "Search query (function name, type signature, or keywords)"
-                        ),
-                        "maxLength": MAX_QUERY_LENGTH,
-                    },
-                    "max_results": {
-                        "type": "integer",
-                        "description": "Maximum number of results (default: 10)",
-                        "default": 10,
-                        "minimum": 1,
-                        "maximum": 100,
-                    },
-                },
-                "required": ["query"],
-            },
-        ),
-        Tool(
-            name="hoogle_info",
-            description=("Get detailed information about a specific function or type"),
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": (
-                            "Function name or type name to get detailed information for"
-                        ),
-                        "maxLength": MAX_QUERY_LENGTH,
-                    }
-                },
-                "required": ["name"],
-            },
-        ),
-    ]
-
-
-async def handle_hoogle_search(
-    arguments: SearchArgs,
-) -> ToolResponse:
-    """Handle hoogle_search tool calls."""
-    if hoogle_client is None:
-        return [TextContent(type="text", text="Error: Hoogle client not initialized")]
-
-    query = arguments.query
-    max_results = arguments.max_results or 10
-
-    logger.info(f"Handling hoogle_search: query='{query}', max_results={max_results}")
-
-    if not query:
-        logger.warning("Search query not specified")
-        return [TextContent(type="text", text="Error: Search query not specified")]
-
-    result = await hoogle_client.search(arguments)
-
-    if not result.success:
-        response_text = f"Search error: {result.error}\n"
-        response_text += f"Output: {result.output}" if result.output else ""
-        return [TextContent(type="text", text=response_text)]
-
-    response_text = f"Hoogle search results (query: '{query}'):\n\n"
-
-    if result.output:
-        response_text += result.output
-        logger.debug(f"Search returned {len(result.output.splitlines())} lines")
-    else:
-        response_text += "No search results found."
-        logger.info("No search results found")
-
-    return [TextContent(type="text", text=response_text)]
-
-
-async def handle_hoogle_info(
-    arguments: GetInfoArgs,
-) -> ToolResponse:
-    """Handle hoogle_info tool calls."""
-    if hoogle_client is None:
-        return [TextContent(type="text", text="Error: Hoogle client not initialized")]
-
-    name_param = arguments.name
-
-    logger.info(f"Handling hoogle_info: name='{name_param}'")
-
-    if not name_param:
-        logger.warning("Function name or type name not specified")
-        return [
-            TextContent(
-                type="text", text="Error: Function name or type name not specified"
-            )
-        ]
-
-    result = await hoogle_client.get_info(arguments)
-
-    if not result.success:
-        response_text = f"Information retrieval error: {result.error}\n"
-        response_text += f"Output: {result.output}" if result.output else ""
-        return [TextContent(type="text", text=response_text)]
-
-    response_text = f"Detailed information for '{name_param}':\n\n"
-
-    if result.output:
-        response_text += result.output
-        logger.debug(f"Info returned {len(result.output.splitlines())} lines")
-    else:
-        response_text += "No information found."
-        logger.info("No information found")
-
-    return [TextContent(type="text", text=response_text)]
-
-
-@server.call_tool()
-async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolResponse:
-    """Handle tool calls."""
-    logger.info(f"Tool call received: {name}")
-    logger.debug(f"Tool arguments: {arguments}")
-
-    if arguments is None:
-        arguments = {}
-
-    try:
-        logger.debug(f"Executing tool {name} with arguments: {arguments}")
-
-        match name:
-            case "hoogle_search":
-                search_args = SearchArgs(**arguments)
-                result = await handle_hoogle_search(search_args)
-            case "hoogle_info":
-                info_args = GetInfoArgs(**arguments)
-                result = await handle_hoogle_info(info_args)
-            case _:
-                logger.error(f"Unknown tool requested: {name}")
-                return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
-
-        logger.info(f"Tool {name} executed successfully")
-        return result
-    except ValidationError as e:
-        error_details = []
-        for error in e.errors():
-            field = error.get("loc", ("unknown",))[-1]
-            msg = error.get("msg", "Invalid value")
-            error_details.append(f"{field}: {msg}")
-
-        error_message = f"Validation error for {name}: {'; '.join(error_details)}"
-        logger.warning(error_message)
-        return [TextContent(type="text", text=f"Error: {error_message}")]
-    except Exception as e:
-        logger.error(f"Error executing tool {name}: {str(e)}")
-        return [
-            TextContent(type="text", text=f"Error executing tool '{name}': {str(e)}")
-        ]
-
-
 async def main(log_level: LogLevel = "INFO") -> None:
     """Main server function."""
-    global hoogle_client
-
-    setup_logging(log_level)
-    logger.info("Starting Hoogle MCP Server")
-
     found_hoogle_path = shutil.which("hoogle")
     if not found_hoogle_path:
         error_msg = (
@@ -246,23 +68,8 @@ async def main(log_level: LogLevel = "INFO") -> None:
     hoogle_client = HoogleClient(found_hoogle_path)
     logger.info(f"Hoogle found at: {found_hoogle_path}")
 
-    from mcp.server.stdio import stdio_server
-
-    logger.info("Starting stdio server")
-    async with stdio_server() as (read_stream, write_stream):
-        logger.info("Server running, waiting for requests...")
-        await server.run(
-            read_stream,
-            write_stream,
-            InitializationOptions(
-                server_name="hoogle-mcp-server",
-                server_version=get_version(),
-                capabilities=server.get_capabilities(
-                    notification_options=NotificationOptions(),
-                    experimental_capabilities={},
-                ),
-            ),
-        )
+    server = HoogleMCPServer(hoogle_client)
+    await server.run(log_level)
 
 
 def parse_cli_arguments() -> LogLevel:
