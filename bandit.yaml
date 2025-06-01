@@ -1,6 +1,5 @@
 skips:
   - B404
-  - B603
 
 assert_used:
   skips:
