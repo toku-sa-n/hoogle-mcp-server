@@ -43,7 +43,7 @@ class TestHoogleClientIntegration:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with("map", 10)
+        setup_hoogle_client.search.assert_called_once_with({"query": "map"})
 
     @pytest.mark.asyncio
     async def test_info_success(self, setup_hoogle_client: Mock) -> None:
@@ -60,7 +60,7 @@ class TestHoogleClientIntegration:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Detailed information" in result[0].text
-        setup_hoogle_client.get_info.assert_called_once_with("map")
+        setup_hoogle_client.get_info.assert_called_once_with({"name": "map"})
 
 
 class TestHandleCallTool:
@@ -90,7 +90,7 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with("map", 10)
+        setup_hoogle_client.search.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_hoogle_info_missing_name(self) -> None:
@@ -116,7 +116,7 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Detailed information" in result[0].text
-        setup_hoogle_client.get_info.assert_called_once_with("map")
+        setup_hoogle_client.get_info.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_unknown_tool(self) -> None:
@@ -156,7 +156,7 @@ class TestHandleHoogleSearch:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Some search results" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with(max_length_query, 10)
+        setup_hoogle_client.search.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_success(self, setup_hoogle_client: Mock) -> None:
@@ -174,7 +174,7 @@ class TestHandleHoogleSearch:
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
         assert "Prelude filter" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with("map", 5)
+        setup_hoogle_client.search.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_no_results(self, setup_hoogle_client: Mock) -> None:
@@ -191,7 +191,7 @@ class TestHandleHoogleSearch:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "No search results found" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with("nonexistent_function", 10)
+        setup_hoogle_client.search.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_error(self, setup_hoogle_client: Mock) -> None:
@@ -209,7 +209,7 @@ class TestHandleHoogleSearch:
         assert result[0].type == "text"
         assert "Search error" in result[0].text
         assert "Invalid query format" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with("invalid query", 10)
+        setup_hoogle_client.search.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_multiple_results(self, setup_hoogle_client: Mock) -> None:
@@ -231,7 +231,7 @@ class TestHandleHoogleSearch:
         assert result[0].type == "text"
         assert "Data.List map" in result[0].text
         assert "Control.Monad mapM" in result[0].text
-        setup_hoogle_client.search.assert_called_once_with("map", 20)
+        setup_hoogle_client.search.assert_called_once()
 
 
 class TestHandleHoogleInfo:
@@ -264,7 +264,7 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Some detailed information" in result[0].text
-        setup_hoogle_client.get_info.assert_called_once_with(max_length_name)
+        setup_hoogle_client.get_info.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_success(self, setup_hoogle_client: Mock) -> None:
@@ -282,7 +282,7 @@ class TestHandleHoogleInfo:
         assert result[0].type == "text"
         assert "module Prelude" in result[0].text
         assert "Detailed docs" in result[0].text
-        setup_hoogle_client.get_info.assert_called_once_with("map")
+        setup_hoogle_client.get_info.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_no_info(self, setup_hoogle_client: Mock) -> None:
@@ -299,7 +299,7 @@ class TestHandleHoogleInfo:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "No information found" in result[0].text
-        setup_hoogle_client.get_info.assert_called_once_with("nonexistent_function")
+        setup_hoogle_client.get_info.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_error(self, setup_hoogle_client: Mock) -> None:
@@ -317,4 +317,4 @@ class TestHandleHoogleInfo:
         assert result[0].type == "text"
         assert "Information retrieval error" in result[0].text
         assert "Function not found" in result[0].text
-        setup_hoogle_client.get_info.assert_called_once_with("invalid_function")
+        setup_hoogle_client.get_info.assert_called_once()

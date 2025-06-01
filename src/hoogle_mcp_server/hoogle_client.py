@@ -20,7 +20,7 @@ import asyncio
 import logging
 from typing import List
 
-from .types import CommandResult
+from .types import CommandResult, GetInfoArgs, SearchArgs
 
 
 class HoogleClient:
@@ -128,8 +128,11 @@ class HoogleClient:
                 "return_code": None,
             }
 
-    async def search(self, query: str, max_results: int = 10) -> CommandResult:
+    async def search(self, search_args: SearchArgs) -> CommandResult:
         """Search for functions and types using hoogle."""
+        query = search_args.get("query", "")
+        max_results = search_args.get("max_results", 10)
+
         self.logger.info(
             f"Searching hoogle: query='{query}', max_results={max_results}"
         )
@@ -141,8 +144,10 @@ class HoogleClient:
 
         return await self.run_command(args)
 
-    async def get_info(self, name: str) -> CommandResult:
+    async def get_info(self, info_args: GetInfoArgs) -> CommandResult:
         """Get detailed information about a specific function or type."""
+        name = info_args.get("name", "")
+
         self.logger.info(f"Getting hoogle info: name='{name}'")
 
         args = ["search", "-i", "--", name]

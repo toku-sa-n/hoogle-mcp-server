@@ -128,7 +128,7 @@ async def handle_hoogle_search(
         logger.warning("Search query not specified")
         return [TextContent(type="text", text="Error: Search query not specified")]
 
-    result = await hoogle_client.search(query, max_results)
+    result = await hoogle_client.search(arguments)
 
     if not result["success"]:
         response_text = f"Search error: {result['error']}\n"
@@ -166,7 +166,7 @@ async def handle_hoogle_info(
             )
         ]
 
-    result = await hoogle_client.get_info(name_param)
+    result = await hoogle_client.get_info(arguments)
 
     if not result["success"]:
         response_text = f"Information retrieval error: {result['error']}\n"
