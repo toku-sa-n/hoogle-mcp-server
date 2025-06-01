@@ -198,15 +198,16 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
     try:
         logger.debug(f"Executing tool {name} with arguments: {arguments}")
 
-        if name == "hoogle_search":
-            search_args = SearchArgs(**arguments)
-            result = await handle_hoogle_search(search_args)
-        elif name == "hoogle_info":
-            info_args = GetInfoArgs(**arguments)
-            result = await handle_hoogle_info(info_args)
-        else:
-            logger.error(f"Unknown tool requested: {name}")
-            return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
+        match name:
+            case "hoogle_search":
+                search_args = SearchArgs(**arguments)
+                result = await handle_hoogle_search(search_args)
+            case "hoogle_info":
+                info_args = GetInfoArgs(**arguments)
+                result = await handle_hoogle_info(info_args)
+            case _:
+                logger.error(f"Unknown tool requested: {name}")
+                return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
 
         logger.info(f"Tool {name} executed successfully")
         return result
