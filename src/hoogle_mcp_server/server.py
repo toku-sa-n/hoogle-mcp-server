@@ -201,6 +201,7 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
     handler = tool_handlers.get(name)
     if handler:
         try:
+            logger.debug(f"Executing tool {name} with arguments: {arguments}")
             result = await handler(arguments)
             logger.info(f"Tool {name} executed successfully")
             return result
