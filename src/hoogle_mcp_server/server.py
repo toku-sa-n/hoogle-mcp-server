@@ -20,22 +20,13 @@ import argparse
 import asyncio
 import shutil
 import sys
-from importlib import metadata
 
 from .hoogle_client import HoogleClient
 from .hoogle_mcp_server import HoogleMCPServer
 from .logger import get_logger, setup_logging
-from .types import LogLevel
+from .types import LogLevel, get_version
 
 logger = get_logger(__name__)
-
-
-def get_version() -> str:
-    """Get package version from metadata."""
-    try:
-        return metadata.version("hoogle-mcp-server")
-    except metadata.PackageNotFoundError:
-        return "(no version info)"
 
 
 async def main(log_level: LogLevel = "INFO") -> None:

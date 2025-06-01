@@ -25,7 +25,14 @@ from mcp.types import TextContent, Tool
 from pydantic import ValidationError
 
 from .hoogle_client import HoogleClient
-from .types import GetInfoArgs, LogLevel, SearchArgs, ToolResponse, MAX_QUERY_LENGTH
+from .types import (
+    GetInfoArgs,
+    LogLevel,
+    SearchArgs,
+    ToolResponse,
+    MAX_QUERY_LENGTH,
+    get_version,
+)
 
 
 class HoogleMCPServer:
@@ -226,19 +233,10 @@ class HoogleMCPServer:
                 write_stream,
                 InitializationOptions(
                     server_name="hoogle-mcp-server",
-                    server_version=self._get_version(),
+                    server_version=get_version(),
                     capabilities=self.server.get_capabilities(
                         notification_options=NotificationOptions(),
                         experimental_capabilities={},
                     ),
                 ),
             )
-
-    def _get_version(self) -> str:
-        """Get package version from metadata."""
-        from importlib import metadata
-
-        try:
-            return metadata.version("hoogle-mcp-server")
-        except metadata.PackageNotFoundError:
-            return "(no version info)"

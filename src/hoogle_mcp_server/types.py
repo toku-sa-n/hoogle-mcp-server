@@ -65,3 +65,13 @@ class GetInfoArgs(BaseModel):
 
 ToolResponse = list[TextContent]
 ToolHandler = Callable[[Dict[str, Any]], Awaitable[ToolResponse]]
+
+
+def get_version() -> str:
+    """Get package version from metadata."""
+    from importlib import metadata
+
+    try:
+        return metadata.version("hoogle-mcp-server")
+    except metadata.PackageNotFoundError:
+        return "(no version info)"
