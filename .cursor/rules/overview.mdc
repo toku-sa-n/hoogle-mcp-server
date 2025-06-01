@@ -33,7 +33,7 @@ Do not write any obvious comments.
 
 ## Type definitions
 
-Type definitions must be in `types.py`
+Non-class type definitions must be in `types.py`. Class definitions must be in a separate file with filename being the same as the class name (hyphens/capitalizations must be properly handled.)
 
 ## Validation (mandatory gate)
 

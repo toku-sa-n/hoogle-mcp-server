@@ -22,19 +22,20 @@ import logging
 import shutil
 import sys
 from importlib import metadata
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
 
+from .hoogle_path import HooglePath
 from .types import CommandResult, LogLevel, ToolHandler, ToolResponse
 
 HOOGLE_COMMAND_TIMEOUT_SECONDS = 5
 MAX_QUERY_LENGTH = 500
 
 server: Server[str] = Server("hoogle-mcp-server")
-hoogle_path: Optional[str] = None
+hoogle_path = HooglePath()
 logger = logging.getLogger(__name__)
 
 
@@ -63,11 +64,7 @@ def get_version() -> str:
 
 def get_hoogle_path() -> str:
     """Get the hoogle path, raising an error if not initialized."""
-    if hoogle_path is None:
-        raise RuntimeError(
-            "Hoogle path not initialized. Server startup may have failed."
-        )
-    return hoogle_path
+    return hoogle_path.get()
 
 
 async def _execute_process_with_timeout(
@@ -330,9 +327,8 @@ async def main(log_level: LogLevel = "INFO") -> None:
         print(error_msg, file=sys.stderr)
         return
 
-    global hoogle_path
-    hoogle_path = found_hoogle_path
-    logger.info(f"Hoogle found at: {hoogle_path}")
+    hoogle_path.init(found_hoogle_path)
+    logger.info(f"Hoogle found at: {found_hoogle_path}")
 
     from mcp.server.stdio import stdio_server
 
