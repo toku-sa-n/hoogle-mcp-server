@@ -27,6 +27,7 @@ from typing import Any, Dict
 from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.types import TextContent, Tool
+from pydantic import ValidationError
 
 from .hoogle_client import HoogleClient
 from .types import GetInfoArgs, LogLevel, SearchArgs, ToolResponse
@@ -209,6 +210,16 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any] | None) -> ToolR
 
         logger.info(f"Tool {name} executed successfully")
         return result
+    except ValidationError as e:
+        error_details = []
+        for error in e.errors():
+            field = error.get("loc", ("unknown",))[-1]
+            msg = error.get("msg", "Invalid value")
+            error_details.append(f"{field}: {msg}")
+
+        error_message = f"Validation error for {name}: {'; '.join(error_details)}"
+        logger.warning(error_message)
+        return [TextContent(type="text", text=f"Error: {error_message}")]
     except Exception as e:
         logger.error(f"Error executing tool {name}: {str(e)}")
         return [

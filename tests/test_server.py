@@ -75,7 +75,8 @@ class TestHandleCallTool:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error executing tool" in result[0].text
+        assert "Validation error for hoogle_search" in result[0].text
+        assert "query" in result[0].text
 
     @pytest.mark.asyncio
     async def test_hoogle_search_success(self, setup_hoogle_client: Mock) -> None:
@@ -101,7 +102,8 @@ class TestHandleCallTool:
 
         assert len(result) == 1
         assert result[0].type == "text"
-        assert "Error executing tool" in result[0].text
+        assert "Validation error for hoogle_info" in result[0].text
+        assert "name" in result[0].text
 
     @pytest.mark.asyncio
     async def test_hoogle_info_success(self, setup_hoogle_client: Mock) -> None:
@@ -128,6 +130,50 @@ class TestHandleCallTool:
         assert len(result) == 1
         assert result[0].type == "text"
         assert "Error: Unknown tool" in result[0].text
+
+    @pytest.mark.asyncio
+    async def test_hoogle_search_validation_error_max_results_too_high(self) -> None:
+        """Test hoogle_search with max_results above maximum (100)."""
+        result = await handle_call_tool(
+            "hoogle_search", {"query": "map", "max_results": 101}
+        )
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Validation error for hoogle_search" in result[0].text
+        assert "max_results" in result[0].text
+
+    @pytest.mark.asyncio
+    async def test_hoogle_search_validation_error_max_results_too_low(self) -> None:
+        """Test hoogle_search with max_results below minimum (1)."""
+        result = await handle_call_tool(
+            "hoogle_search", {"query": "map", "max_results": 0}
+        )
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Validation error for hoogle_search" in result[0].text
+        assert "max_results" in result[0].text
+
+    @pytest.mark.asyncio
+    async def test_hoogle_search_validation_error_missing_query(self) -> None:
+        """Test hoogle_search with missing required query field."""
+        result = await handle_call_tool("hoogle_search", {"max_results": 10})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Validation error for hoogle_search" in result[0].text
+        assert "query" in result[0].text
+
+    @pytest.mark.asyncio
+    async def test_hoogle_info_validation_error_missing_name(self) -> None:
+        """Test hoogle_info with missing required name field."""
+        result = await handle_call_tool("hoogle_info", {})
+
+        assert len(result) == 1
+        assert result[0].type == "text"
+        assert "Validation error for hoogle_info" in result[0].text
+        assert "name" in result[0].text
 
 
 class TestHandleHoogleSearch:
